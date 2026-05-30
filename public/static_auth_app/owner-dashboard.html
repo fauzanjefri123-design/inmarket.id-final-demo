@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Owner Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Dashboard Owner</h1>
+    <p>Selamat datang, Owner!</p>
+    <button onclick="firebase.auth().signOut()">Logout</button>
+    <script src="script.js"></script>
+    <script>
+        // Auth Guard
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) window.location.href = 'index.html';
+            else {
+                firebase.firestore().collection('users').doc(user.uid).get().then(doc => {
+                    const data = doc.data();
+                    if (!data || data.role !== 'Owner') {
+                        alert('Anda bukan Owner!');
+                        window.location.href = 'karyawan-dashboard.html';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

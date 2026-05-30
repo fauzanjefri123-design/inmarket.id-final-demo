@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Karyawan Dashboard</title>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Dashboard Karyawan</h1>
+    <p>Selamat datang, Karyawan.</p>
+    <button onclick="firebase.auth().signOut()">Logout</button>
+    <script src="script.js"></script>
+    <script>
+        // Simple Auth Guard
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) window.location.href = 'index.html';
+        });
+    </script>
+</body>
+</html>
