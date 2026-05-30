@@ -372,17 +372,17 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
 
         {/* COLUMN 1: AUTOMATED FINANCIAL STATEMENTS & AUTO REPORT (Laporan Laba Rugi + Auto Report Periodik) */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100 min-h-[380px] flex flex-col justify-between">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100 min-h-[380px] flex flex-col justify-between">
             <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 rounded-full blur-2xl pointer-events-none" />
 
             {/* Header & period toggles */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/5 pb-4 mb-4">
               <div>
-                <h4 className="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+                <h4 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                   <BarChart2 className="w-4 h-4 text-[#a855f7]" />
                   {language === 'id' ? 'Laporan Laba Rugi & Siklus Auto-Report' : 'Profit & Loss Statement Periodics'}
                 </h4>
-                <p className="text-[10px] font-mono text-slate-400 mt-1">Sistem otomatis menghitung rekapitulasi laba berdasarkan POS harian.</p>
+                <p className="text-[10px] font-mono text-slate-500 dark:text-slate-400 mt-1">Sistem otomatis menghitung rekapitulasi laba berdasarkan POS harian.</p>
               </div>
 
               {/* Day, Week, Month Switches */}
@@ -394,7 +394,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                     className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg tracking-wider transition-all duration-200 ${
                       reportPeriod === period 
                         ? 'bg-[#a855f7] text-white shadow-md' 
-                        : 'text-slate-400 hover:text-slate-200'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-705 dark:hover:text-slate-200'
                     }`}
                   >
                     {period === 'daily' ? 'Hari Ini' : period === 'weekly' ? 'Mingguan' : 'Bulanan'}
@@ -443,8 +443,8 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
 
             {/* Smart P&L dynamic tabular ledger breaks */}
             <div className="overflow-x-auto border border-white/5 rounded-2xl bg-black/25">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="text-[9px] uppercase tracking-wider text-slate-400 bg-white/5 font-mono border-b border-white/5">
+              <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                <thead className="text-[9px] uppercase tracking-wider text-slate-500 dark:text-slate-400 bg-slate-500/10 dark:bg-white/5 font-mono border-b border-slate-200 dark:border-white/5">
                   <tr>
                     <th className="py-3 px-4">Deskripsi Rekapitulasi</th>
                     <th className="py-3 px-4">Nilai Bruto</th>
@@ -454,22 +454,22 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                 </thead>
                 <tbody className="divide-y divide-white/5 font-mono">
                   <tr>
-                    <td className="py-3 px-4 text-slate-200">Realisasi Transaksi Kasir POS Digital</td>
-                    <td className="py-3 px-4 text-emerald-400">Rp {currentReport.salesTotal.toLocaleString()}</td>
-                    <td className="py-3 px-4 text-neutral-400">100%</td>
-                    <td className="py-3 px-4"><span className="text-[9px] bg-emerald-500/10 text-emerald-400 py-0.5 px-1.5 rounded-full border border-emerald-500/20">LIVE</span></td>
+                    <td className="py-3 px-4 text-slate-700 dark:text-slate-200">Realisasi Transaksi Kasir POS Digital</td>
+                    <td className="py-3 px-4 text-emerald-600 dark:text-emerald-400">Rp {currentReport.salesTotal.toLocaleString()}</td>
+                    <td className="py-3 px-4 text-neutral-500 dark:text-neutral-400">100%</td>
+                    <td className="py-3 px-4"><span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 py-0.5 px-1.5 rounded-full border border-emerald-500/20">LIVE</span></td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 text-slate-200">Beban Persediaan & Margin Supplier Harian</td>
-                    <td className="py-3 px-4 text-rose-400">Rp -{Math.floor(currentReport.salesTotal * 0.22).toLocaleString()}</td>
-                    <td className="py-3 px-4 text-neutral-400">22%</td>
-                    <td className="py-3 px-4"><span className="text-[9px] bg-white/5 text-slate-400 py-0.5 px-1.5 rounded-full">CALCULATED</span></td>
+                    <td className="py-3 px-4 text-slate-700 dark:text-slate-200">Beban Persediaan & Margin Supplier Harian</td>
+                    <td className="py-3 px-4 text-rose-500 dark:text-rose-400">Rp -{Math.floor(currentReport.salesTotal * 0.22).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-neutral-500 dark:text-neutral-400">22%</td>
+                    <td className="py-3 px-4"><span className="text-[9px] bg-slate-100/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 py-0.5 px-1.5 rounded-full border border-slate-200 dark:border-white/5">CALCULATED</span></td>
                   </tr>
                   <tr>
-                    <td className="py-3 px-4 text-slate-200">Biaya Tetap (OPEX Sewa Ruang, Gaji & Utilitas)</td>
-                    <td className="py-3 px-4 text-rose-400">Rp -{Math.floor(currentReport.expensesTotal - (currentReport.salesTotal * 0.22)).toLocaleString()}</td>
-                    <td className="py-3 px-4 text-neutral-400">Sisa Beban</td>
-                    <td className="py-3 px-4"><span className="text-[9px] bg-white/5 text-slate-400 py-0.5 px-1.5 rounded-full">FIXED</span></td>
+                    <td className="py-3 px-4 text-slate-700 dark:text-slate-200">Biaya Tetap (OPEX Sewa Ruang, Gaji & Utilitas)</td>
+                    <td className="py-3 px-4 text-rose-500 dark:text-rose-400">Rp -{Math.floor(currentReport.expensesTotal - (currentReport.salesTotal * 0.22)).toLocaleString()}</td>
+                    <td className="py-3 px-4 text-neutral-500 dark:text-neutral-400">Sisa Beban</td>
+                    <td className="py-3 px-4"><span className="text-[9px] bg-slate-100/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 py-0.5 px-1.5 rounded-full border border-slate-200 dark:border-white/5">FIXED</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -492,7 +492,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                   playSuccessSound();
                   window.print();
                 }}
-                className="w-full sm:w-auto px-4 py-2.5 bg-white/5 hover:bg-white/10 text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 border border-white/10 transition duration-200 cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-2 border border-slate-200 dark:border-white/10 transition duration-200 cursor-pointer"
               >
                 <Printer className="w-3.5 h-3.5" />
                 {language === 'id' ? 'CETAK ARSIP FISIK' : 'PRINT LEDGER'}
@@ -501,14 +501,14 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
           </div>
 
           {/* FEATURE: INTERACTIVE EXPENSE APPROVAL MODAL / ACCORD DECK */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-4">
               <div>
-                <h4 className="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center gap-2">
+                <h4 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-cyan-400 animate-pulse" />
                   {language === 'id' ? 'Hub Approval Pengeluaran Toko' : 'Expense Approvals Console'}
                 </h4>
-                <p className="text-[10px] font-mono text-slate-400 mt-1">Staf operasional mengajukan dana sewa/restock. Owner berhak menyetujui langsung.</p>
+                <p className="text-[10px] font-mono text-slate-505 dark:text-slate-400 mt-1">Staf operasional mengajukan dana sewa/restock. Owner berhak menyetujui langsung.</p>
               </div>
               <span className="text-[10px] font-mono bg-violet-500/10 border border-violet-500/20 text-violet-400 font-bold px-2 py-1 rounded-full uppercase tracking-wider">
                 {pendingApprovals.length} Tertunda
@@ -519,7 +519,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
               {pendingApprovals.length === 0 ? (
                 <div className="text-center py-8 bg-black/10 rounded-2xl border border-white/5">
                   <CheckCircle2 className="w-8 h-8 text-emerald-400 mx-auto mb-2 opacity-50" />
-                  <p className="text-xs text-slate-400 font-mono">Semua pengajuan pengeluaran kas telah disetujui / diproses!</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">Semua pengajuan pengeluaran kas telah disetujui / diproses!</p>
                 </div>
               ) : (
                 pendingApprovals.map((appr) => (
@@ -531,13 +531,13 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                       <span className="text-[9px] font-mono font-bold tracking-widest text-[#a855f7] bg-violet-500/10 px-2 py-0.5 rounded-full uppercase border border-violet-500/20">
                         {appr.category}
                       </span>
-                      <h5 className="text-xs font-bold text-slate-100 mt-1">{appr.item}</h5>
-                      <p className="text-[10.5px] text-slate-400 font-mono">Diajukan oleh: <strong className="text-slate-300">{appr.requester}</strong></p>
+                      <h5 className="text-xs font-bold text-slate-800 dark:text-slate-100 mt-1">{appr.item}</h5>
+                      <p className="text-[10.5px] text-slate-500 dark:text-slate-300 font-mono">Diajukan oleh: <strong className="text-slate-600 dark:text-slate-300">{appr.requester}</strong></p>
                     </div>
 
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <span className="text-[9px] block text-slate-400 font-mono">ESTIMASI BIAYA</span>
+                        <span className="text-[9px] block text-slate-500 dark:text-slate-400 font-mono">ESTIMASI BIAYA</span>
                         <strong className="text-sm font-black text-rose-400 font-mono">Rp {appr.cost.toLocaleString()}</strong>
                       </div>
 
@@ -629,14 +629,14 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
           </div>
 
           {/* CARD: INTERACTIVE REVENUE TARGET SETTING */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <h4 className="text-xs uppercase tracking-widest font-mono text-violet-400 border-b border-white/5 pb-3 mb-4 flex items-center gap-1.5">
               <Sliders className="w-4 h-4 text-[#a855f7]" />
               {language === 'id' ? 'SISTEM TARGET OMSET HARIAN' : 'DAILY REVENUE TARGET CONFIG'}
             </h4>
             
             <div className="space-y-4">
-              <div className="flex justify-between items-center text-xs text-slate-300">
+              <div className="flex justify-between items-center text-xs text-slate-600 dark:text-slate-300">
                 <span>Atur Target Hari Ini:</span>
                 <strong className="text-cyan-400 font-mono text-sm">Rp {targetSalesInput.toLocaleString()}</strong>
               </div>
@@ -657,33 +657,33 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                 <span>Rp 10.0M</span>
               </div>
 
-              <div className="p-3 bg-white/5 rounded-xl text-[10.5px] text-slate-400 leading-relaxed">
+              <div className="p-3 bg-slate-100/60 dark:bg-white/5 rounded-xl text-[10.5px] text-slate-600 dark:text-slate-400 leading-relaxed">
                 🎯 Target yang Anda atur akan divalidasi langsung oleh kecerdasan buatan dalam memformulasi pencapaian absensi & profitabilitas.
               </div>
             </div>
           </div>
 
           {/* CARD: AUTOMATED AUTO-BACKUP & DATABASE FILE RESTORE SYSTEM */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <h4 className="text-xs uppercase tracking-widest font-mono text-violet-400 border-b border-white/5 pb-3 mb-4 flex items-center gap-1.5">
               <Database className="w-4 h-4 text-[#a855f7]" />
               {language === 'id' ? 'AUTO-BACKUP & RESTORE CADANGAN' : 'BACKUP & RESTORE CONSOLE'}
             </h4>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
               Lindungi data instansi POS. Unduh data lengkap dalam format JSON, atau pulihkan pangkalan data melalui unggah file master.
             </p>
 
             <div className="grid grid-cols-2 gap-3 mb-4">
               <button
                 onClick={handleDownloadDatabaseBackup}
-                className="py-3 bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer"
+                className="py-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
                 BACKUP DATA
               </button>
               
-              <label className="py-3 bg-white/5 hover:bg-white/10 text-slate-200 border border-dashed border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center">
+              <label className="py-3 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-200 border border-dashed border-slate-200 dark:border-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1 transition-all duration-200 cursor-pointer text-center">
                 <Upload className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
                 RESTORE DATA
                 <input 
@@ -701,7 +701,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
           </div>
 
           {/* CARD: WHATAPPS ALERTS DIRECT API DISPATCHER */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <div className="flex items-center justify-between border-b border-white/5 pb-3.5 mb-4">
               <h4 className="text-xs font-black uppercase tracking-widest font-mono text-violet-400 flex items-center gap-1.5">
                 <Smartphone className="w-4 h-4 text-emerald-400 animate-pulse" />
@@ -713,13 +713,13 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
               </span>
             </div>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+            <p className="text-[11px] text-slate-550 dark:text-slate-400 leading-relaxed mb-4">
               Kirim rekap harian atau notifikasi instan langsung dari terminal POS ke WhatsApp nomor telepon Owner secara aman.
             </p>
 
             <div className="space-y-3">
               <div className="space-y-1.5 text-left">
-                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                <label className="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                   Nomor Kontak Owner (WhatsApp)
                 </label>
                 <input 
@@ -731,7 +731,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                     localStorage.setItem('inmarket_wa_number', numberVal);
                   }}
                   placeholder="e.g. 08123456789"
-                  className="w-full p-3 bg-black/45 hover:bg-black/60 border border-white/5 focus:border-cyan-400 rounded-xl text-xs text-slate-200 transition-all font-mono"
+                  className="w-full p-3 bg-slate-50 dark:bg-black/45 hover:bg-slate-100 dark:hover:bg-black/60 border border-slate-200 dark:border-white/5 focus:border-cyan-500 dark:focus:border-cyan-400 rounded-xl text-xs text-slate-800 dark:text-slate-200 transition-all font-mono"
                 />
               </div>
 
@@ -743,7 +743,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                   onChange={() => setIsWhatsAppEnabled(!isWhatsAppEnabled)}
                   className="accent-cyan-400 cursor-pointer h-4 w-4"
                 />
-                <label htmlFor="wa_auto_trigger" className="text-[10px] text-slate-300 select-none cursor-pointer">
+                <label htmlFor="wa_auto_trigger" className="text-[10px] text-slate-600 dark:text-slate-300 select-none cursor-pointer">
                   Kirim Notifikasi Otomatis pada penjualan bernominal tinggi
                 </label>
               </div>
@@ -761,13 +761,13 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
           </div>
 
           {/* HEATMAP JAM RAMAI TRANSAKSI */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <h4 className="text-xs uppercase tracking-widest font-mono text-violet-400 border-b border-white/5 pb-3 mb-4 flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-cyan-400 animate-spin" />
               HEATMAP JAM RAMAI TRANSAKSI
             </h4>
 
-            <p className="text-[11px] text-slate-400 leading-relaxed mb-4">
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed mb-4">
               Warna menyala menandakan aktivitas kasir tinggi. Klik jam untuk mendiagnosis laporan log operational spesifik.
             </p>
 
@@ -780,7 +780,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
                   ? 'bg-violet-600 text-white shadow-md shadow-violet-500/20' 
                   : h.intensity >= 20 
                   ? 'bg-cyan-950/40 border border-cyan-500/25 text-cyan-300' 
-                  : 'bg-white/5 text-slate-400 border border-white/5';
+                  : 'bg-slate-100/50 dark:bg-white/5 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-white/5';
 
                 return (
                   <button
@@ -797,20 +797,20 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
 
             {/* Display selected hour detail dialog card below */}
             {activeHeatmapHour !== null && (
-              <div className="mt-4 p-3.5 bg-black/45 border border-white/5 rounded-xl space-y-1 relative">
+              <div className="mt-4 p-3.5 bg-slate-100 border border-slate-200 dark:bg-black/45 dark:border-white/5 rounded-xl space-y-1 relative">
                 <button 
                   onClick={() => setActiveHeatmapHour(null)}
-                  className="absolute top-1.5 right-1.5 text-slate-400 hover:text-white text-xs font-mono"
+                  className="absolute top-1.5 right-1.5 text-slate-550 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white text-xs font-mono"
                 >
                   ✕
                 </button>
-                <div className="text-[9px] font-bold text-cyan-400 font-mono uppercase">
+                <div className="text-[9px] font-bold text-cyan-500 dark:text-cyan-400 font-mono uppercase">
                   DETAIL OPERATIONAL JAM {busyHours[activeHeatmapHour].hour}
                 </div>
-                <p className="text-xs text-slate-200 font-mono leading-relaxed">
+                <p className="text-xs text-slate-700 dark:text-slate-200 font-mono leading-relaxed">
                   {busyHours[activeHeatmapHour].desc}
                 </p>
-                <p className="text-[10px] text-slate-400 font-mono">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
                   Rata-rata: <strong>{busyHours[activeHeatmapHour].count} Tiket POS Transaksi Terlayani</strong>
                 </p>
               </div>
@@ -818,7 +818,7 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
           </div>
 
           {/* CRM LOYALTY VOUCHERS GENERATOR TOOL */}
-          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-100">
+          <div className="p-6 rounded-[2rem] bg-white dark:bg-[#090514]/40 border border-violet-500/10 backdrop-blur-xl relative overflow-hidden text-slate-800 dark:text-slate-100">
             <h4 className="text-xs uppercase tracking-widest font-mono text-violet-400 border-b border-white/5 pb-3 mb-4 flex items-center gap-1.5">
               <Percent className="w-4 h-4 text-amber-400" />
               SISTEM VOUCHER PROMO OTOMATIS
@@ -827,22 +827,22 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
             <form onSubmit={handleCreateVoucher} className="space-y-3">
               <div className="grid grid-cols-2 gap-2">
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-bold text-slate-400 font-mono">Kode Promo</label>
+                  <label className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 font-mono">Kode Promo</label>
                   <input
                     type="text"
                     required
                     value={newVoucherCode}
                     onChange={(e) => setNewVoucherCode(e.target.value)}
                     placeholder="e.g. HEMAT77"
-                    className="w-full text-xs p-2.5 bg-black/45 border border-white/5 rounded-xl font-mono text-white"
+                    className="w-full text-xs p-2.5 bg-slate-55 border border-slate-200 focus:border-cyan-500 dark:bg-black/45 dark:border-white/5 rounded-xl font-mono text-slate-800 dark:text-white"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[9px] uppercase font-bold text-slate-400 font-mono">Diskon (%)</label>
+                  <label className="text-[9px] uppercase font-bold text-slate-500 dark:text-slate-400 font-mono">Diskon (%)</label>
                   <select
                     value={newVoucherDiscount}
                     onChange={(e) => setNewVoucherDiscount(e.target.value)}
-                    className="w-full text-xs p-2.5 bg-black/45 border border-white/5 rounded-xl font-mono text-slate-200"
+                    className="w-full text-xs p-2.5 bg-slate-55 border border-slate-205 dark:bg-black/45 dark:border-white/5 rounded-xl font-mono text-slate-800 dark:text-slate-200"
                   >
                     <option value="5">5% Diskon</option>
                     <option value="10">10% Diskon</option>
@@ -860,15 +860,15 @@ export const SmartBusinessOS: React.FC<SmartBusinessOSProps> = ({
             </form>
 
             <div className="space-y-2 mt-4 pt-4 border-t border-white/5">
-              <span className="text-[9px] font-mono text-slate-400 uppercase tracking-widest block">KUPON TOKO AKTIF SAAT INI :</span>
+              <span className="text-[9px] font-mono text-slate-500 dark:text-slate-400 uppercase tracking-widest block">KUPON TOKO AKTIF SAAT INI :</span>
               <div className="max-h-32 overflow-y-auto space-y-1.5">
                 {vouchers.map((v, idx) => (
-                  <div key={idx} className="p-2.5 rounded-xl bg-black/20 border border-white/5 flex items-center justify-between text-xs font-mono">
+                  <div key={idx} className="p-2.5 rounded-xl bg-slate-50 dark:bg-black/20 border border-slate-100 dark:border-white/5 flex items-center justify-between text-xs font-mono">
                     <div>
-                      <strong className="text-cyan-400">{v.code}</strong>
-                      <span className="text-[10px] text-slate-400 block">Min Belanja: Rp 30.000+</span>
+                      <strong className="text-cyan-600 dark:text-cyan-400">{v.code}</strong>
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Min Belanja: Rp 30.000+</span>
                     </div>
-                    <span className="text-emerald-400 font-black">{v.discount}% OFF</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-black">{v.discount}% OFF</span>
                   </div>
                 ))}
               </div>

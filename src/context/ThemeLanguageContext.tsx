@@ -19,12 +19,8 @@ const ThemeLanguageContext = createContext<ThemeLanguageContextType | undefined>
 
 export const ThemeLanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme | null;
-    if (savedTheme) return savedTheme;
-    
-    // Time-based default: 18:00 - 05:59 is dark
-    const hour = new Date().getHours();
-    return (hour >= 18 || hour < 6) ? 'dark' : 'light';
+    // Always default to dark initially on first load/visit
+    return 'dark';
   });
   
   const [language, setLanguage] = useState<Language>(() => {
