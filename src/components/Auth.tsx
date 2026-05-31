@@ -39,7 +39,7 @@ export default function Auth({ onNavigate, initialRole = 'owner' }: { onNavigate
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedAuthRole, setSelectedAuthRole] = useState<'owner' | 'employee' | 'demo'>(initialRole);
+  // Removed selectedAuthRole to simplify flow
   
   // Registration specific
   const [fullName, setFullName] = useState('');
@@ -55,10 +55,6 @@ export default function Auth({ onNavigate, initialRole = 'owner' }: { onNavigate
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedAuthRole === 'demo') {
-      setError('Silakan pilih "DEMO OWNER INSTAN" atau "DEMO KARYAWAN INSTAN" di bawah untuk masuk sebagai demo.');
-      return;
-    }
 
     setError(null);
     if (!email || !password) {
@@ -74,8 +70,7 @@ export default function Auth({ onNavigate, initialRole = 'owner' }: { onNavigate
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           email, 
-          password, 
-          role: selectedAuthRole === 'owner' ? 'Owner' : 'Employee' 
+          password 
         })
       });
 
@@ -152,7 +147,6 @@ export default function Auth({ onNavigate, initialRole = 'owner' }: { onNavigate
         triggerNotification('sukses', 'Akun berhasil didaftarkan di sistem cloud!');
       } else {
         console.warn('Server registration failed:', data.error);
-        triggerNotification('info', 'Registrasi lokal diaktifkan (Cloud sync tertunda).');
       }
 
       // 2. Always save locally for offline-first resilience
@@ -292,221 +286,132 @@ export default function Auth({ onNavigate, initialRole = 'owner' }: { onNavigate
 
         <form onSubmit={isLogin ? handleLoginSubmit : handleRegisterSubmit} className="space-y-6">
           
-          {isLogin && (
-            <div className="space-y-4 mb-8">
-              <div className="flex items-center justify-between px-1">
-                <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500">SELECT ROLE AUTHENTICATION</label>
-                <span className="text-[9px] bg-fuchsia-500/10 text-fuchsia-400 px-2 py-0.5 rounded border border-fuchsia-500/20 font-mono">The Firebase Admin service has not been initialized</span>
-              </div>
-              
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={() => setSelectedAuthRole('owner')}
-                  className={`w-full group text-left p-5 rounded-[24px] transition-all duration-500 border relative overflow-hidden cursor-pointer ${
-                    selectedAuthRole === 'owner' ? 'bg-fuchsia-500/[0.04] border-fuchsia-500/40 shadow-[0_0_30px_rgba(217,70,239,0.08)]' : 'bg-white/[0.02] border-white/5 hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <h4 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2.5 ${selectedAuthRole === 'owner' ? 'text-fuchsia-400' : 'text-slate-200'}`}>
-                      OWNER / PEMILIK <Crown size={12} className="opacity-80" />
-                    </h4>
-                    <span className="text-[8px] font-mono opacity-30 tracking-widest">SYS_ADMIN</span>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-slate-500 pr-10">Full system privileges for branches, stock, finance, staff & AI</p>
-                  {selectedAuthRole === 'owner' && <motion.div layoutId="auth-line" className="absolute top-0 right-0 w-1.5 h-full bg-fuchsia-500" />}
-                </button>
-
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('owner')}
-                    className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-violet-600/20 text-violet-300 rounded-xl hover:bg-violet-600/30 transition border border-violet-500/20 flex items-center justify-center gap-2"
-                  >
-                    <Crown size={10} /> DEMO OWNER INSTAN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('karyawan')}
-                    className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-fuchsia-600/20 text-fuchsia-300 rounded-xl hover:bg-fuchsia-600/30 transition border border-fuchsia-500/20 flex items-center justify-center gap-2"
-                  >
-                    <UserCheck size={10} /> DEMO KARYAWAN INSTAN
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedAuthRole('employee')}
-                  className={`w-full group text-left p-5 rounded-[24px] transition-all duration-500 border relative overflow-hidden cursor-pointer ${
-                    selectedAuthRole === 'employee' ? 'bg-violet-500/[0.04] border-violet-500/40 shadow-[0_0_30px_rgba(139,92,246,0.08)]' : 'bg-white/[0.02] border-white/5 hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <h4 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2.5 ${selectedAuthRole === 'employee' ? 'text-violet-400' : 'text-slate-200'}`}>
-                      KARYAWAN / STAF CABANG <Users size={12} className="opacity-80" />
-                    </h4>
-                    <span className="text-[8px] font-mono opacity-30 tracking-widest">SYS_STAFF</span>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-slate-500 pr-10">Perform QR attendance, operate cashier, team chat, agenda & rankings</p>
-                  {selectedAuthRole === 'employee' && <motion.div layoutId="auth-line" className="absolute top-0 right-0 w-1.5 h-full bg-violet-500" />}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedAuthRole('demo')}
-                  className={`w-full group text-left p-5 rounded-[24px] transition-all duration-500 border relative overflow-hidden cursor-pointer ${
-                    selectedAuthRole === 'demo' ? 'bg-fuchsia-500/[0.04] border-fuchsia-500/40 shadow-[0_0_30px_rgba(217,70,239,0.08)]' : 'bg-white/[0.02] border-white/5 hover:border-white/10'
-                  }`}
-                >
-                  <div className="flex justify-between items-start mb-1.5">
-                    <h4 className={`text-[11px] font-bold uppercase tracking-wider flex items-center gap-2.5 ${selectedAuthRole === 'demo' ? 'text-fuchsia-400' : 'text-slate-200'}`}>
-                      DEMO / GUEST VISITOR <Sun size={12} className="opacity-80" />
-                    </h4>
-                    <span className="text-[8px] font-mono opacity-30 tracking-widest">SYS_GUEST</span>
-                  </div>
-                  <p className="text-[10px] leading-relaxed text-slate-500 pr-10">Explore simulated read-only dashboard instantly offline with no registration</p>
-                  {selectedAuthRole === 'demo' && <motion.div layoutId="auth-line" className="absolute top-0 right-0 w-1.5 h-full bg-fuchsia-500" />}
-                </button>
-              </div>
-            </div>
-          )}
-
           <AnimatePresence mode="wait">
-            {selectedAuthRole === 'demo' && isLogin ? (
-              <motion.div 
-                key="demo-options"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-4 pt-2"
-              >
-                <div className="text-center py-4 px-6 rounded-3xl bg-fuchsia-500/5 border border-fuchsia-500/20 mb-4">
-                  <p className="text-[10px] font-bold text-fuchsia-400 uppercase tracking-widest mb-1.5">Simulation Pass Active</p>
-                  <p className="text-[9px] text-slate-500 leading-relaxed font-mono">No credentials required. Select workspace profile to initialize offline state.</p>
+            <motion.div 
+              key="creds-options"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              className="space-y-4 pt-4"
+            >
+              {!isLogin && (
+                <>
+                  <div className="space-y-3 mb-6">
+                    <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block px-1">Registrasi Sebagai</label>
+                    <div className="flex gap-2">
+                       <button 
+                         type="button"
+                         onClick={() => setRegRole('owner')}
+                         className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all border ${regRole === 'owner' ? 'bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-400' : 'bg-white/5 border-white/5 text-slate-500'}`}
+                       >
+                         Owner / Pemilik
+                       </button>
+                       <button 
+                         type="button"
+                         onClick={() => setRegRole('karyawan')}
+                         className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all border ${regRole === 'karyawan' ? 'bg-violet-500/20 border-violet-500 text-violet-400' : 'bg-white/5 border-white/5 text-slate-500'}`}
+                       >
+                         Karyawan
+                       </button>
+                    </div>
+                  </div>
+                  <div className="relative group mb-6">
+                    <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-violet-400">
+                      <User size={18} />
+                    </div>
+                    <input 
+                      type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" 
+                      className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-4 outline-none focus:border-violet-500/30 transition-all text-sm"
+                    />
+                  </div>
+                </>
+              )}
+
+              <div className="relative group">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-violet-400">
+                  <Mail size={18} />
                 </div>
-                
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('owner')}
-                    className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-violet-600/20 text-violet-300 rounded-xl hover:bg-violet-600/30 transition border border-violet-500/20 flex items-center justify-center gap-2"
-                  >
-                    <Crown size={10} /> DEMO OWNER INSTAN
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleDemoLogin('karyawan')}
-                    className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-fuchsia-600/20 text-fuchsia-300 rounded-xl hover:bg-fuchsia-600/30 transition border border-fuchsia-500/20 flex items-center justify-center gap-2"
-                  >
-                    <UserCheck size={10} /> DEMO KARYAWAN INSTAN
-                  </button>
+                <input 
+                  type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your business email" 
+                  className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-4 outline-none focus:border-violet-500/30 transition-all text-sm shadow-inner"
+                />
+              </div>
+
+              <div className="relative group p-0">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-fuchsia-400">
+                  <Lock size={18} />
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="creds-options"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 20 }}
-                className="space-y-4"
+                <input 
+                  type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter 6+ character password" 
+                  className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-14 outline-none focus:border-fuchsia-500/30 transition-all text-sm shadow-inner"
+                />
+                <button 
+                  type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 cursor-pointer p-1.5"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+
+              <button 
+                type="submit" disabled={isLoading}
+                className="w-full relative group/btn bg-white text-black font-extrabold py-5 rounded-[26px] transition-all shadow-xl hover:shadow-white/5 active:scale-[0.98] flex justify-center items-center gap-3 cursor-pointer mt-8"
               >
-                {!isLogin && (
+                {isLoading ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : (
+                  <span className="flex items-center gap-2 text-[11px] tracking-[0.2em] font-mono group-hover/btn:tracking-[0.25em] transition-all uppercase">
+                    {isLogin ? "PROCEED AUTHENTICATION" : "INITIALIZE ACCOUNT"}
+                  </span>
+                )}
+              </button>
+
+              <p className="text-[11px] text-slate-500 mt-6 text-center font-medium">
+                {isLogin ? (
                   <>
-                    <div className="space-y-3 mb-6">
-                      <label className="text-[10px] uppercase tracking-widest font-bold text-slate-500 block px-1">Registrasi Sebagai</label>
-                      <div className="flex gap-2">
-                         <button 
-                           type="button"
-                           onClick={() => setRegRole('owner')}
-                           className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all border ${regRole === 'owner' ? 'bg-fuchsia-500/20 border-fuchsia-500 text-fuchsia-400' : 'bg-white/5 border-white/5 text-slate-500'}`}
-                         >
-                           Owner / Pemilik
-                         </button>
-                         <button 
-                           type="button"
-                           onClick={() => setRegRole('karyawan')}
-                           className={`flex-1 py-3 rounded-xl text-[10px] font-bold transition-all border ${regRole === 'karyawan' ? 'bg-violet-500/20 border-violet-500 text-violet-400' : 'bg-white/5 border-white/5 text-slate-500'}`}
-                         >
-                           Karyawan
-                         </button>
-                      </div>
-                    </div>
-                    <div className="relative group mb-6">
-                      <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-violet-400">
-                        <User size={18} />
-                      </div>
-                      <input 
-                        type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" 
-                        className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-4 outline-none focus:border-violet-500/30 transition-all text-sm"
-                      />
-                    </div>
+                    Belum bergabung dengan ekosistem kami?{" "}
+                    <button 
+                      type="button"
+                      onClick={() => setIsLogin(false)}
+                      className="text-fuchsia-400 hover:text-fuchsia-300 font-bold transition-colors duration-200 cursor-pointer"
+                    >
+                      Daftar sekarang
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Sudah memiliki akun InMarket?{" "}
+                    <button 
+                      type="button"
+                      onClick={() => setIsLogin(true)}
+                      className="text-violet-400 hover:text-violet-300 font-bold transition-colors duration-200 cursor-pointer"
+                    >
+                      Masuk di sini
+                    </button>
                   </>
                 )}
+              </p>
 
-                <div className="relative group">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-violet-400">
-                    <Mail size={18} />
+              {isLogin && (
+                <div className="mt-8 pt-6 border-t border-white/5 space-y-4">
+                  <p className="text-[10px] text-slate-500 text-center uppercase tracking-widest font-bold">Atau coba demo cepat offline</p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin('owner')}
+                      className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-violet-600/20 text-violet-300 rounded-xl hover:bg-violet-600/30 transition border border-violet-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Crown size={10} /> DEMO OWNER
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin('karyawan')}
+                      className="flex-1 py-3 text-[9px] font-black uppercase tracking-widest bg-fuchsia-600/20 text-fuchsia-300 rounded-xl hover:bg-fuchsia-600/30 transition border border-fuchsia-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <UserCheck size={10} /> DEMO KARYAWAN
+                    </button>
                   </div>
-                  <input 
-                    type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your business email" 
-                    className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-4 outline-none focus:border-violet-500/30 transition-all text-sm shadow-inner"
-                  />
                 </div>
-
-                <div className="relative group p-0">
-                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600 transition-colors pointer-events-none group-focus-within:text-fuchsia-400">
-                    <Lock size={18} />
-                  </div>
-                  <input 
-                    type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter 6+ character password" 
-                    className="w-full bg-[#080a13] text-white placeholder-slate-600 border border-white/[0.03] rounded-[22px] py-4.5 pl-14 pr-14 outline-none focus:border-fuchsia-500/30 transition-all text-sm shadow-inner"
-                  />
-                  <button 
-                    type="button" onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-300 cursor-pointer p-1.5"
-                  >
-                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-
-                <button 
-                  type="submit" disabled={isLoading}
-                  className="w-full relative group/btn bg-white text-black font-extrabold py-5 rounded-[26px] transition-all shadow-xl hover:shadow-white/5 active:scale-[0.98] flex justify-center items-center gap-3 cursor-pointer mt-8"
-                >
-                  {isLoading ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : (
-                    <span className="flex items-center gap-2 text-[11px] tracking-[0.2em] font-mono group-hover/btn:tracking-[0.25em] transition-all uppercase">
-                      {isLogin ? "PROCEED AUTHENTICATION" : "INITIALIZE ACCOUNT"}
-                    </span>
-                  )}
-                </button>
-
-                <p className="text-[11px] text-slate-500 mt-6 text-center font-medium">
-                  {isLogin ? (
-                    <>
-                      Belum bergabung dengan ekosistem kami?{" "}
-                      <button 
-                        type="button"
-                        onClick={() => setIsLogin(false)}
-                        className="text-fuchsia-400 hover:text-fuchsia-300 font-bold transition-colors duration-200 cursor-pointer"
-                      >
-                        Daftar sekarang
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      Sudah memiliki akun InMarket?{" "}
-                      <button 
-                        type="button"
-                        onClick={() => setIsLogin(true)}
-                        className="text-violet-400 hover:text-violet-300 font-bold transition-colors duration-200 cursor-pointer"
-                      >
-                        Masuk di sini
-                      </button>
-                    </>
-                  )}
-                </p>
-              </motion.div>
-            )}
+              )}
+            </motion.div>
           </AnimatePresence>
         </form>
 

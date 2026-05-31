@@ -6,8 +6,22 @@ import {
   Package, Plus, Trash2, Edit2, Search, Filter, AlertCircle, ShoppingCart, 
   History, Upload, X, Sparkles, Maximize2, Scan, Tag, ChevronLeft, 
   ChevronRight, Image as ImageIcon, Video, Loader2, Check, Info, Printer, 
-  Sliders, Flame, Barcode, Warehouse, Palette, FileText, Zap, RefreshCw, Download
+  Sliders, Flame, Barcode, Warehouse, Palette, FileText, Zap, RefreshCw, Download,
+  BarChart3, ChevronDown, ChevronUp, PieChart as LucidePieChart
 } from 'lucide-react';
+import { 
+  PieChart as RechartsPieChart, 
+  Pie, 
+  Cell, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer, 
+  BarChart as RechartsBarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Legend as RechartsLegend 
+} from 'recharts';
 import { useThemeLanguage } from '../context/ThemeLanguageContext';
 import { translations } from '../lib/translations';
 import { getPartitionedKey, safeJsonParse } from '../lib/utils';
@@ -87,6 +101,10 @@ export default function Inventory() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'info' | 'error'; message: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Analytics charts UI states
+  const [isChartExpanded, setIsChartExpanded] = useState(true);
+  const [activeChartMetric, setActiveChartMetric] = useState<'count' | 'stock' | 'value'>('count');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -1005,6 +1023,44 @@ export default function Inventory() {
     return { label: language === 'id' ? 'Aman' : 'In Stock', color: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' };
   };
 
+  // Color guidelines based on violet & cyan gradients
+  const CHART_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#6366f1', '#f43f5e', '#14b8a6'];
+
+  // Memoized category distribution stats
+  const categoryStats = React.useMemo(() => {
+    const statsMap: Record<string, { name: string; count: number; totalStock: number; assetValue: number }> = {};
+    
+    // Seed with existing pre-defined categories
+    categories.forEach(cat => {
+      statsMap[cat] = {
+        name: cat,
+        count: 0,
+        totalStock: 0,
+        assetValue: 0
+      };
+    });
+    
+    products.forEach(p => {
+      const cat = p.category || (language === 'id' ? 'Lainnya' : 'Others');
+      if (!statsMap[cat]) {
+        statsMap[cat] = {
+          name: cat,
+          count: 0,
+          totalStock: 0,
+          assetValue: 0
+        };
+      }
+      
+      statsMap[cat].count += 1;
+      statsMap[cat].totalStock += (Number(p.stock) || 0);
+      const capPrice = Number(p.capitalPrice) || Number(p.price) || 0;
+      statsMap[cat].assetValue += capPrice * (Number(p.stock) || 0);
+    });
+    
+    // Filter out categories with 0 count to make chart cleaner
+    return Object.values(statsMap).filter(item => item.count > 0);
+  }, [products, categories, language]);
+
   // Filter & Search checks
   const lowStockProducts = products.filter(p => p.stock >= 0 && p.stock < 10);
   const filteredProducts = products.filter(p => 
@@ -1119,6 +1175,243 @@ export default function Inventory() {
               >
                 {t('auditItems')}
               </button>
+            </motion.div>
+          )}
+
+          {/* Futuristic Category Distribution Analytics Dashboard Card */}
+          {products.length > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="p-6 rounded-[2rem] bg-[#0c091f]/45 border border-violet-500/10 backdrop-blur-3xl relative overflow-hidden text-slate-100 shadow-2xl"
+            >
+              {/* Dynamic decorative visual indicators */}
+              <div className="absolute top-0 right-0 w-48 h-48 bg-violet-600/5 rounded-full blur-[90px] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-44 h-44 bg-cyan-500/5 rounded-full blur-[85px] pointer-events-none" />
+              <div className="absolute top-0 inset-x-24 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
+
+              {/* Card Header Row */}
+              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 bg-violet-600/10 rounded-xl text-violet-400 border border-violet-500/15">
+                    <BarChart3 className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-wider text-slate-100">
+                      {language === 'id' ? 'Analisis Distribusi Kategori' : 'Category Distribution Analytics'}
+                    </h3>
+                    <p className="text-[10px] font-mono text-slate-400 mt-0.5">
+                      {language === 'id' 
+                        ? 'Proporsi item SKU, jumlah total unit stok, dan ringkasan valuasi aset modal harian.' 
+                        : 'Unique SKU counts, total stock level units, and capital valuation breakdown.'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Metric Controllers Hub */}
+                <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                  <div className="flex bg-black/40 border border-white/5 rounded-2xl p-1 w-full md:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => { playClickSound(); setActiveChartMetric('count'); }}
+                      className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        activeChartMetric === 'count' 
+                          ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Unik SKU' : 'SKU Count'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { playClickSound(); setActiveChartMetric('stock'); }}
+                      className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        activeChartMetric === 'stock' 
+                          ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Unit Stok' : 'Total Units'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { playClickSound(); setActiveChartMetric('value'); }}
+                      className={`flex-1 md:flex-initial px-3.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        activeChartMetric === 'value' 
+                          ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' 
+                          : 'text-slate-400 hover:text-slate-200'
+                      }`}
+                    >
+                      {language === 'id' ? 'Valuasi Modal' : 'Asset Capital'}
+                    </button>
+                  </div>
+
+                  {/* Expand / Collapse triggers */}
+                  <button
+                    type="button"
+                    onClick={() => { playClickSound(); setIsChartExpanded(!isChartExpanded); }}
+                    className="p-2 py-2.5 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-300 hover:text-white rounded-xl transition duration-150 cursor-pointer flex items-center justify-center"
+                    title={isChartExpanded ? 'Collapse Panels' : 'Expand Panels'}
+                  >
+                    {isChartExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Expandable Chart Canvas container */}
+              <AnimatePresence initial={false}>
+                {isChartExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.35, ease: 'easeInOut' }}
+                    className="overflow-hidden"
+                  >
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-6 border-t border-white/5 mt-6">
+                      {/* Left: Proporsi Pie Donut Chart */}
+                      <div className="lg:col-span-5 flex flex-col justify-between p-5 bg-[#080514]/50 border border-white/5 rounded-3xl min-h-[300px]">
+                        <div>
+                          <h4 className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#06b6d4]">
+                            {language === 'id' ? 'PROPORSI PERSENTASE SEKTOR' : 'RELATIVE FRACTION PROPORTION'}
+                          </h4>
+                          <p className="text-[9px] text-slate-400 font-mono mt-0.5">
+                            {language === 'id' ? 'Fraksi kontribusi relatif antarkategori.' : 'Fractional category contribution weight overview.'}
+                          </p>
+                        </div>
+
+                        <div className="h-44 relative my-4">
+                          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                            <RechartsPieChart>
+                              <Pie
+                                data={categoryStats}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={48}
+                                outerRadius={65}
+                                paddingAngle={3}
+                                dataKey={
+                                  activeChartMetric === 'count' ? 'count' : 
+                                  activeChartMetric === 'stock' ? 'totalStock' : 'assetValue'
+                                }
+                              >
+                                {categoryStats.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                                ))}
+                              </Pie>
+                              <RechartsTooltip 
+                                contentStyle={{ backgroundColor: '#0c0a1d', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '14px', color: '#f8fafc' }}
+                                formatter={(value: any, name: any, props: any) => {
+                                  if (activeChartMetric === 'value') {
+                                    return [`Rp ${value.toLocaleString()}`, props.payload.name];
+                                  }
+                                  if (activeChartMetric === 'stock') {
+                                    return [`${value.toLocaleString()} Units`, props.payload.name];
+                                  }
+                                  return [`${value} SKUs`, props.payload.name];
+                                }}
+                              />
+                            </RechartsPieChart>
+                          </ResponsiveContainer>
+                          
+                          {/* Inner center label values */}
+                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                            <span className="text-[8px] font-mono font-bold uppercase tracking-widest text-slate-400">
+                              {activeChartMetric === 'count' ? 'TOTAL SKU' : activeChartMetric === 'stock' ? 'TOTAL UNIT' : 'TOTAL ASSET'}
+                            </span>
+                            <span className="text-xs font-black font-mono tracking-tight text-white mt-0.5">
+                              {activeChartMetric === 'count' 
+                                ? `${products.length} SKU`
+                                : activeChartMetric === 'stock'
+                                ? `${categoryStats.reduce((acc, c) => acc + c.totalStock, 0).toLocaleString()} Pcs`
+                                : `Rp ${categoryStats.reduce((acc, c) => acc + c.assetValue, 0).toLocaleString()}`
+                              }
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Chart Custom Legend Tags */}
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 justify-center text-[10px] text-slate-400 font-medium">
+                          {categoryStats.map((item, index) => (
+                            <div key={`legend-${item.name}`} className="flex items-center gap-1.5">
+                              <span 
+                                className="w-2 h-2 rounded-full inline-block shrink-0" 
+                                style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }} 
+                              />
+                              <span className="text-slate-300 font-mono text-[9px] font-bold">{item.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Right: Bar comparative ledger Column Chart */}
+                      <div className="lg:col-span-7 flex flex-col justify-between p-5 bg-[#080514]/50 border border-white/5 rounded-3xl min-h-[300px]">
+                        <div>
+                          <h4 className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8b5cf6]">
+                            {language === 'id' ? 'GRAFIK DETIL HISTOGRAM' : 'COMPARATIVE LEDGER BAR'}
+                          </h4>
+                          <p className="text-[9px] text-slate-400 font-mono mt-0.5">
+                            {language === 'id' ? 'Histogram total porsi kuantitatif per kategori.' : 'Actual total scale counts relative across inventory categories.'}
+                          </p>
+                        </div>
+
+                        <div className="h-52 mt-4">
+                          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                            <RechartsBarChart data={categoryStats}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
+                              <XAxis 
+                                dataKey="name" 
+                                stroke="rgba(255,255,255,0.4)" 
+                                fontSize={9} 
+                                tickLine={false} 
+                                axisLine={false} 
+                              />
+                              <YAxis 
+                                stroke="rgba(255,255,255,0.4)" 
+                                fontSize={9} 
+                                tickLine={false} 
+                                axisLine={false}
+                                tickFormatter={(value) => {
+                                  if (activeChartMetric === 'value') {
+                                    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
+                                    if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
+                                    return value;
+                                  }
+                                  return value;
+                                }}
+                              />
+                              <RechartsTooltip 
+                                cursor={{ fill: 'rgba(255, 255, 255, 0.015)' }}
+                                contentStyle={{ backgroundColor: '#0c0a1d', border: '1px solid rgba(139,92,246,0.3)', borderRadius: '14px', color: '#f8fafc' }}
+                                formatter={(value: any) => {
+                                  if (activeChartMetric === 'value') return [`Rp ${value.toLocaleString()}`, language === 'id' ? 'Valuasi Aset' : 'Asset Value'];
+                                  if (activeChartMetric === 'stock') return [`${value.toLocaleString()} Pcs`, language === 'id' ? 'Kuantitas Stok' : 'Units Stock'];
+                                  return [`${value} SKU`, language === 'id' ? 'Kategori Unik' : 'Unique SKU'];
+                                }}
+                              />
+                              <Bar 
+                                dataKey={
+                                  activeChartMetric === 'count' ? 'count' : 
+                                  activeChartMetric === 'stock' ? 'totalStock' : 'assetValue'
+                                } 
+                                fill="#8b5cf6" 
+                                radius={[6, 6, 0, 0]}
+                              >
+                                {categoryStats.map((entry, index) => (
+                                  <Cell 
+                                    key={`bar-cell-${index}`} 
+                                    fill={CHART_COLORS[index % CHART_COLORS.length]} 
+                                  />
+                                ))}
+                              </Bar>
+                            </RechartsBarChart>
+                          </ResponsiveContainer>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 

@@ -20,7 +20,6 @@ try {
   redisInstance = new Redis(redisUrl, redisConfig);
   
   redisInstance.on('error', (err) => {
-    // Log once but don't crash
     if (isRedisAvailable) {
       console.warn('Redis connection lost:', err.message);
       isRedisAvailable = false;
@@ -31,52 +30,76 @@ try {
     console.log('Successfully connected to Redis');
     isRedisAvailable = true;
   });
+
+  // Periodic active state health-check ping (every 30 seconds)
+  setInterval(async () => {
+    if (redisInstance && redisInstance.status === 'ready') {
+      try {
+        const pingRes = await redisInstance.ping();
+        isRedisAvailable = pingRes === 'PONG';
+      } catch {
+        isRedisAvailable = false;
+      }
+    } else {
+      isRedisAvailable = false;
+    }
+  }, 30000);
 } catch (e) {
   console.error('Failed to initialize Redis client:', e);
+}
+
+// Inline connection validation checking status strictly
+function checkRedisReady(): boolean {
+  return !!redisInstance && redisInstance.status === 'ready' && isRedisAvailable;
 }
 
 // Export a proxy-like object or helpers that handle missing redis
 export const redis = {
   get: async (key: string) => {
-    if (!redisInstance || !isRedisAvailable) return null;
+    if (!checkRedisReady()) return null;
     try {
-      return await redisInstance.get(key);
+      return await redisInstance!.get(key);
     } catch {
+      isRedisAvailable = false; // Set to false on failure
       return null;
     }
   },
   set: async (key: string, value: string, mode?: string, duration?: number) => {
-    if (!redisInstance || !isRedisAvailable) return null;
+    if (!checkRedisReady()) return null;
     try {
       if (mode === 'EX' && duration) {
-        return await redisInstance.set(key, value, 'EX', duration);
+        return await redisInstance!.set(key, value, 'EX', duration);
       }
-      return await redisInstance.set(key, value);
+      return await redisInstance!.set(key, value);
     } catch {
+      isRedisAvailable = false;
       return null;
     }
   },
   keys: async (pattern: string) => {
-    if (!redisInstance || !isRedisAvailable) return [];
+    if (!checkRedisReady()) return [];
     try {
-      return await redisInstance.keys(pattern);
+      return await redisInstance!.keys(pattern);
     } catch {
+      isRedisAvailable = false;
       return [];
     }
   },
   del: async (key: string) => {
-    if (!redisInstance || !isRedisAvailable) return 0;
+    if (!checkRedisReady()) return 0;
     try {
-      return await redisInstance.del(key);
+      return await redisInstance!.del(key);
     } catch {
+      isRedisAvailable = false;
       return 0;
     }
   },
   ttl: async (key: string) => {
-    if (!redisInstance || !isRedisAvailable) return -1;
+    if (!checkRedisReady()) return -1;
     try {
-      return await redisInstance.ttl(key);
+      return await redisInstance!.ttl(key);
     } catch {
+      isRedisAvailable = false;
       return -1;
     }
   }

@@ -42,22 +42,28 @@ if (!isOriginAuthorized) {
 
 const dbId = import.meta.env.VITE_FIREBASE_FIRESTORE_DB_ID || '(default)';
 
-export let db: any;
-export let auth: any;
+let initializedDb: any = null;
+let initializedAuth: any = null;
 
 try {
-  db = getFirestore(app, dbId);
-  auth = getAuth(app);
+  initializedDb = dbId && dbId !== '(default)' ? getFirestore(app, dbId) : getFirestore(app);
+  initializedAuth = getAuth(app);
 } catch (error) {
   console.error("Firebase service initialization failed.");
   console.error("DIAGNOSTIC CHECKLIST:");
   console.error("- Current Host:", typeof window !== 'undefined' ? window.location.hostname : 'n/a');
   console.error("- Configured Auth Domain:", config.authDomain);
-  console.error("- Verify that your project's Identity Toolkit API is enabled in the Google Cloud Console.");
-  console.error("- Ensure the API Key provided in your environment variables has proper permissions.");
-  console.error("- Check if your current host is added to 'Authorized Domains' in Firebase Auth settings (Console > Auth > Settings > Authorized Domains).");
   console.error("Error details:", error);
-  throw error;
+  
+  // Set minimal stubs to prevent unhandled crashing of the import tree
+  initializedDb = {} as any;
+  initializedAuth = {
+    currentUser: null,
+    onAuthStateChanged: () => () => {},
+  } as any;
 }
+
+export const db = initializedDb;
+export const auth = initializedAuth;
 
 console.log("Firebase initialized successfully. If authentication fails, ensure 'Identity Toolkit API' is enabled and your domain is in 'Authorized Domains'.");

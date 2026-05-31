@@ -148,15 +148,9 @@ class ErrorBoundary extends React.Component<EBProps, EBState> {
   }
 }
 
-function ThemeAwareApp({
-  hasBusiness,
-  setHasBusiness,
-}: {
-  hasBusiness: boolean;
-  setHasBusiness: (val: boolean) => void;
-}) {
+function ThemeAwareApp() {
   const { theme } = useThemeLanguage();
-  const { userData, authLoading, refreshAuth } = useAuth();
+  const { userData, authLoading, refreshAuth, hasBusiness, setHasBusiness } = useAuth();
   const [currentView, setCurrentView] = useState<'splash' | 'landing' | 'auth' | 'dashboard' | 'products' | 'attendance' | 'kasir' | 'wallet' | 'profile'>('splash');
   const [authRole, setAuthRole] = useState<'owner' | 'employee' | 'demo'>('owner');
 
@@ -178,20 +172,23 @@ function ThemeAwareApp({
       : 'bg-[#f5f3fa] text-slate-900 font-sans';
   };
 
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  useEffect(() => {
+    setIsDemoMode(localStorage.getItem('inmarket_demo_mode') === 'true');
+  }, [userData]);
+
   useEffect(() => {
     if (authLoading) return;
 
     const v = currentView;
     const isOfflineLoggedIn = localStorage.getItem('offline_logged_in_user');
+    const isLoggedIn = !!(userData || isOfflineLoggedIn);
     
     // Redirect logic
-    if ((userData || isOfflineLoggedIn) && (v === 'landing' || v === 'auth' || v === 'splash')) {
-      if (v === 'splash') {
-        // stay in splash until animation finished if we want, but usually it auto-navigates
-      } else {
-        setCurrentView('dashboard');
-      }
-    } else if (!userData && !isOfflineLoggedIn && v !== 'landing' && v !== 'splash') {
+    if (isLoggedIn && (v === 'landing' || v === 'auth')) {
+      setCurrentView('dashboard');
+    } else if (!isLoggedIn && v !== 'landing' && v !== 'splash') {
       setCurrentView('auth');
     }
   }, [authLoading, userData, currentView]);
@@ -219,12 +216,23 @@ function ThemeAwareApp({
       
       <div className="relative z-10 h-full">
         <React.Suspense fallback={<HolographicLoader />}>
-          {currentView === 'splash' && <OpeningAnimation onComplete={() => handleNavigate('landing')} />}
+          {currentView === 'splash' && (
+            <OpeningAnimation 
+              onComplete={() => {
+                const isOfflineLoggedIn = localStorage.getItem('offline_logged_in_user');
+                if (userData || isOfflineLoggedIn) {
+                  handleNavigate('dashboard');
+                } else {
+                  handleNavigate('landing');
+                }
+              }} 
+            />
+          )}
           {currentView === 'landing' && <LandingPage onNavigate={handleNavigate} />}
           {currentView === 'auth' && <Auth onNavigate={handleNavigate} initialRole={authRole} />}
           {(currentView === 'dashboard' || currentView === 'products' || currentView === 'attendance' || currentView === 'kasir' || currentView === 'wallet' || currentView === 'profile') && (
              <>
-               {localStorage.getItem('inmarket_demo_mode') === 'true' && (
+               {isDemoMode && (
                  <div className="bg-amber-500 text-slate-900 border-b-2 border-amber-600 p-2 sm:p-3 text-center sticky top-0 z-[100] flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-xs sm:text-sm font-bold shadow-lg">
                     <span className="flex-1 min-w-[200px]">Mode Demo Aktif: Anda bebas mengakses dashboard siapa saja tanpa login!</span>
                     <div className="flex gap-2">
@@ -258,24 +266,11 @@ function ThemeAwareApp({
 }
 
 export default function App() {
-  const [hasBusiness, setHasBusiness] = useState(false);
-
-  useEffect(() => {
-    const businessKey = getPartitionedKey('inmarket_business', true);
-    const businessData = localStorage.getItem(businessKey);
-    if (businessData) {
-      setHasBusiness(true);
-    }
-  }, []);
-
   return (
     <ErrorBoundary>
       <AuthProvider>
         <ThemeLanguageProvider>
-          <ThemeAwareApp
-            hasBusiness={hasBusiness}
-            setHasBusiness={setHasBusiness}
-          />
+          <ThemeAwareApp />
         </ThemeLanguageProvider>
       </AuthProvider>
     </ErrorBoundary>

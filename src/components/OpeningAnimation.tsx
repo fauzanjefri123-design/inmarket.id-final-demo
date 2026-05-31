@@ -6,6 +6,7 @@ export default function OpeningAnimation({ onComplete }: { onComplete: () => voi
   const [isVisible, setIsVisible] = useState(true);
   const [typedText, setTypedText] = useState('');
   const [startClicked, setStartClicked] = useState(false);
+  const [showManifesto, setShowManifesto] = useState(false);
   const fullText = "Smart Business Assistant for Modern Business";
 
   // Simulate automatic user click to trigger audio context if needed
@@ -18,6 +19,7 @@ export default function OpeningAnimation({ onComplete }: { onComplete: () => voi
         index++;
       } else {
         clearInterval(interval);
+        setShowManifesto(true);
       }
     }, 45);
 
@@ -143,6 +145,40 @@ export default function OpeningAnimation({ onComplete }: { onComplete: () => voi
                 {typedText}
                 <span className="inline-block w-1.5 h-4 ml-1 bg-cyan-400 animate-[pulse_0.8s_infinite] align-middle" />
               </p>
+            </div>
+
+            {/* 3C. Staggered Manifesto words */}
+            <div className="h-8 mt-6 flex items-center justify-center gap-5 text-sm font-mono font-black uppercase tracking-wider">
+              <AnimatePresence>
+                {showManifesto && (
+                  <>
+                    <motion.span 
+                      initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.2 }}
+                      className="text-violet-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]"
+                    >
+                      🎪 Cerdas.
+                    </motion.span>
+                    <motion.span 
+                      initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 0.7 }}
+                      className="text-cyan-400 drop-shadow-[0_0_10px_rgba(6,182,212,0.5)]"
+                    >
+                      ⚡ Efisien.
+                    </motion.span>
+                    <motion.span 
+                      initial={{ scale: 0.8, opacity: 0, y: 10 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4, delay: 1.2 }}
+                      className="text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"
+                    >
+                      💸 Untung.
+                    </motion.span>
+                  </>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
 

@@ -56,6 +56,11 @@ async function startServer() {
   const validateGeminiInput = (req: any, res: any, next: any) => {
     const clientSecret = req.headers['x-inmarket-client'];
     const expectedSecret = process.env.CLIENT_SECRET || 'your_secure_client_secret';
+    
+    if (expectedSecret === 'your_secure_client_secret' && process.env.NODE_ENV === 'production') {
+      console.warn('[SECURITY WARNING] CLIENT_SECRET is using default insecure value in production! Verify your .env setup.');
+    }
+
     if (clientSecret !== expectedSecret) {
       return res.status(403).json({ error: 'Header verification failed' });
     }
@@ -229,7 +234,7 @@ async function startServer() {
   });
 
   app.post('/api/auth/login', async (req, res) => {
-    const { email, password, role } = req.body;
+    const { email, password } = req.body;
     const apiKey = process.env.VITE_FIREBASE_API_KEY;
 
     if (!auth || !db) {
@@ -238,10 +243,6 @@ async function startServer() {
 
     if (!apiKey) {
       return res.status(500).json({ error: 'Firebase API Key missing in environment' });
-    }
-
-    if (!['Owner', 'Employee'].includes(role)) {
-      return res.status(400).json({ error: 'Role must be Owner or Employee' });
     }
 
     try {
@@ -269,17 +270,7 @@ async function startServer() {
       }
 
       const userData = userDoc.data();
-      const registeredRole = userData?.role; // 'owner' or 'employee'
-
-      if (registeredRole !== role.toLowerCase()) {
-        const expectedFriendly = role === 'Owner' ? 'Karyawan' : 'Owner';
-        const targetFriendly = role === 'Owner' ? 'Owner' : 'Karyawan';
-        
-        return res.status(403).json({ 
-          error: `Akun Anda tidak terdaftar sebagai ${targetFriendly}.`,
-          details: `Role mismatch: expected ${registeredRole} but user selected ${role.toLowerCase()}`
-        });
-      }
+      const registeredRole = userData?.role || 'owner'; // default to owner if missing
 
       // 3. Success - Return token and user info
       res.json({
@@ -301,8 +292,30 @@ async function startServer() {
   });
 
   app.post('/api/webhook/payment-confirmation', async (req, res) => {
-    const { order_id, transaction_status, gross_amount, custom_field } = req.body;
+    const { order_id, transaction_status, gross_amount, custom_field, signature_key, status_code } = req.body;
     
+    // Webhook signature verification to prevent spoofing
+    if (signature_key) {
+      const serverKey = process.env.MIDTRANS_SERVER_KEY || 'your_server_key';
+      // Midtrans standard format: SHA512(order_id + status_code + gross_amount + ServerKey)
+      // Normalize gross_amount to ensure it matches signature payload format
+      const normalizedGross = typeof gross_amount === 'number' ? gross_amount.toFixed(2) : parseFloat(gross_amount).toFixed(2);
+      const payload = `${order_id}${status_code}${normalizedGross}${serverKey}`;
+      const calculatedSignature = crypto.createHash('sha512').update(payload).digest('hex');
+      
+      // Secondary backup check without decimal formatting, just in case
+      const rawPayload = `${order_id}${status_code}${gross_amount}${serverKey}`;
+      const backupSignature = crypto.createHash('sha512').update(rawPayload).digest('hex');
+
+      if (signature_key !== calculatedSignature && signature_key !== backupSignature) {
+        console.warn(`[WEBHOOK WARNING] Failed signature verification for order ${order_id}`);
+        return res.status(403).json({ error: 'Signature verification failed' });
+      }
+    } else if (process.env.NODE_ENV === 'production') {
+      console.warn(`[WEBHOOK WARNING] Missing signature key in production for order ${order_id}`);
+      return res.status(400).json({ error: 'Signature key is required' });
+    }
+
     // 1. Ambil User ID (biasanya dikirim via custom field saat pembuatan invoice)
     const userId = custom_field?.user_id; 
 
@@ -436,13 +449,34 @@ END OF SYSTEM INSTRUCTION
         }
       });
 
-      const result = await ai.models.generateContent({
-        model: 'gemini-3.5-flash',
-        contents: prompt,
-        config: {
-          systemInstruction,
+      let result;
+      try {
+        result = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            systemInstruction,
+          }
+        });
+      } catch (err: any) {
+        console.warn('Gemini API Error details:', err.message);
+        if (err.status === 403 || err.message?.toLowerCase().includes('api key')) {
+           return res.status(403).json({ error: 'Akses ditolak: API Key Gemini tidak valid atau tidak memiliki izin.' });
+        } else if (err.status === 404 || err.message?.toLowerCase().includes('not found')) {
+           console.warn('Model gemini-2.5-flash tidak ditemukan, fallback ke gemini-2.0-flash...');
+           try {
+             result = await ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: prompt,
+                config: { systemInstruction }
+             });
+           } catch (fallbackErr: any) {
+             return res.status(500).json({ error: 'Gagal menghubungi AI (Fallback model failed). Pastikan API Key benar.' });
+           }
+        } else {
+           return res.status(500).json({ error: `Kesalahan sistem AI server: ${err.message}` });
         }
-      });
+      }
 
       res.json({ result: result.text || 'Maaf, tidak dapat memproses permintaan.' });
     } catch (error: any) {

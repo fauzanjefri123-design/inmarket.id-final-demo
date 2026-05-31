@@ -92,8 +92,10 @@ import AttendanceQR from './AttendanceQR';
 import WorkspaceManager from './WorkspaceManager';
 import QuickActions from './QuickActions';
 import MarketAi from './MarketAi';
-import { SmartBusinessOS } from './SmartBusinessOS';
+import SalaryManager from './SalaryManager';
 import { JuryShowcaseHub } from './JuryShowcaseHub';
+import { SmartBusinessOS } from './SmartBusinessOS';
+import { RealtimeSalesTrends } from './RealtimeSalesTrends';
 import { AnimatedNumber } from './AnimatedNumber';
 import { addAttendanceEntry, getChatMessages, addChatMessage } from '../lib/firestoreService';
 import { useThemeLanguage } from '../context/ThemeLanguageContext';
@@ -195,6 +197,53 @@ export default function DashboardPage({ currentView: initialView, onNavigate }: 
     return localStorage.getItem(key) === 'yes';
   });
   const [salaryAnim, setSalaryAnim] = useState(false);
+  const [showSalaryManager, setShowSalaryManager] = useState(false);
+
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const [secondsSinceSave, setSecondsSinceSave] = useState(0);
+  const [showJuryHub, setShowJuryHub] = useState(false);
+  const [isSimulatingTraffic, setIsSimulatingTraffic] = useState(false);
+  
+  // (Moved Gap 3C below)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setSecondsSinceSave(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Gap 6: Easter Egg Keyboard
+  useEffect(() => {
+    const sequence = ['i','n','m','a','r','k','e','t'];
+    let typedKeys: string[] = [];
+    
+    const handleKeydown = (e: KeyboardEvent) => {
+      typedKeys.push(e.key.toLowerCase());
+      if (typedKeys.length > sequence.length) {
+        typedKeys.shift();
+      }
+      if (typedKeys.join('') === sequence.join('')) {
+        triggerConfettiRain();
+        toast.custom(
+          (t) => (
+            <div className="bg-[#0b031d] border border-cyan-500/40 text-cyan-400 font-mono px-4 py-3 rounded-xl shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center gap-3">
+              <span className="text-xl">🎯</span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-widest">Easter Egg ditemukan!</p>
+                <p className="text-[10px] text-cyan-300/70 mt-0.5">Kamu tahu nama kami 👏</p>
+              </div>
+            </div>
+          ),
+          { duration: 4000 }
+        );
+        typedKeys = []; // reset
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeydown);
+    return () => window.removeEventListener('keydown', handleKeydown);
+  }, []);
 
   // Attendance Code State (Shared via localStorage)
   const [attendanceCode, setAttendanceCode] = useState(() => {
@@ -310,6 +359,9 @@ export default function DashboardPage({ currentView: initialView, onNavigate }: 
     }
   }, [chatMessages]);
 
+  // 3B. AI personality greeting state
+  const [showPersonalityGreeting, setShowPersonalityGreeting] = useState(true);
+
   // Product Database list
   const [products, setProducts] = useState<any[]>(() => {
     const key = getPartitionedKey('inmarket_products', true);
@@ -347,6 +399,21 @@ export default function DashboardPage({ currentView: initialView, onNavigate }: 
 
   const [realtimeSales, setRealtimeSales] = useState<any[]>([]);
   const [realtimeExpenses, setRealtimeExpenses] = useState<any[]>([]);
+
+  // Gap 3C: Auto-Saved Timestamp
+  useEffect(() => {
+    setLastSavedAt(new Date());
+    setSecondsSinceSave(0);
+  }, [products, realtimeSales]);
+
+  // Gap 3B: Dynamic Browser Tab Title
+  useEffect(() => {
+    if (isSimulatingTraffic) {
+      document.title = `🔴 LIVE [${realtimeSales.length} Transaksi] - InMarket`;
+    } else {
+      document.title = 'InMarket - Business OS';
+    }
+  }, [isSimulatingTraffic, realtimeSales.length]);
 
   // Calculate real metrics
   const calculateRealtimeFinance = () => {
@@ -928,6 +995,16 @@ export default function DashboardPage({ currentView: initialView, onNavigate }: 
           "Diskusi filosofis memang seru, tapi filosofi bisnis nomor satu adalah 'Stok Tidak Boleh Kosong'!"
         ];
         reply = jokes[Math.floor(Math.random() * jokes.length)];
+      } else if (normalizedInp.includes('juri') || normalizedInp.includes('showcase') || normalizedInp.includes('presentasi') || normalizedInp.includes('demo') || normalizedInp.includes('tour') || normalizedInp.includes('autopilot')) {
+        setAiTyping(false);
+        playSuccessSound();
+        if (thinkingInterval) clearInterval(thinkingInterval);
+        setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('voice-open-showcase'));
+        }, 300);
+        reply = language === 'id' 
+          ? "Siap, meluncurkan Juri Showcase Hub untuk presentasi sistem." 
+          : "Understood, launching the Jury Showcase Hub for system presentation.";
       } else if (normalizedInp.includes('objek') || normalizedInp.includes('kamera')) {
         setAiTyping(false);
         playSuccessSound();
@@ -1989,6 +2066,24 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
     }
   };
 
+  const BisnisPulseWidget = () => {
+    const isHealthy = targets.salesCurrent >= (targets.salesTarget * 0.5);
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full group relative cursor-help">
+        <div className="relative flex h-3 w-3">
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${isHealthy ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+          <span className={`relative inline-flex rounded-full h-3 w-3 ${isHealthy ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+        </div>
+        <span className="text-[10px] font-mono font-bold text-slate-300 uppercase tracking-widest hidden sm:block">
+          Pulse
+        </span>
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-48 bg-black/90 backdrop-blur border border-white/10 text-white text-[10px] p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-center">
+          {isHealthy ? 'Detak Bisnis Sehat (Omset > 50% Target)' : 'Perlu Perhatian (Omset < 50% Target)'}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-700 ease-in-out relative ${theme === 'dark' ? 'bg-[#080512] text-slate-100' : 'bg-[#f5f3fa] text-slate-900'}`}>
       
@@ -2501,6 +2596,7 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                           ? (employeeProfile.fullName || currentUser?.displayName || 'Employee') 
                           : (currentUser?.displayName || shopData.ownerName || 'Owner')}
                       </span>
+                      <BisnisPulseWidget />
                     </h2>
                   </motion.div>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed max-w-2xl">
@@ -2510,7 +2606,32 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                 </div>
 
                 {/* Cloud Auto-Backup state widget & Store toggle */}
-                <div className="xl:col-span-4 flex flex-col md:flex-row xl:flex-col gap-3 relative z-10 xl:items-end">
+                <div className="xl:col-span-4 flex flex-col md:flex-row xl:flex-col gap-3 relative z-10 xl:items-end w-full md:w-auto">
+                  {/* 3A. BUSINESS PULSE WIDGET */}
+                  <div className="bg-[#12161f]/90 border border-emerald-500/20 rounded-2xl p-3 flex items-center justify-between gap-4 w-full max-w-sm hover:border-emerald-500/40 transition-all duration-300">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-8 h-8 rounded-lg bg-emerald-950/40 border border-emerald-400/20 flex items-center justify-center text-emerald-400 relative">
+                        <Activity className="w-4 h-4 animate-pulse" />
+                        <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] block text-emerald-400 font-mono leading-none font-bold uppercase tracking-widest">BUSINESS PULSE</span>
+                        <span className="text-xs font-semibold text-slate-200">
+                          {realtimeSales.length > 0 
+                            ? (language === 'id' ? 'Bisnis Sehat & Aktif 💚' : 'Business Healthy & Active 💚')
+                            : (language === 'id' ? 'Kondisi Stabil 💚' : 'Stable Status 💚')
+                          }
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-[9px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2 py-0.5 rounded-lg font-mono font-bold uppercase tracking-wider">
+                      OPTIMAL
+                    </div>
+                  </div>
+
                   <div className="bg-[#120f26]/80 border border-cyan-500/20 rounded-2xl p-3 flex items-center justify-between gap-4 w-full max-w-sm">
                     <div className="flex items-center gap-2.5">
                       <div className="w-8 h-8 rounded-lg bg-cyan-950/40 border border-cyan-400/20 flex items-center justify-center text-cyan-400">
@@ -2633,6 +2754,64 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                 </div>
               </div>
 
+              {/* 3B. INMARKET PERSONALITY AI HOLOGRAPHIC GREETING */}
+              <AnimatePresence>
+                {showPersonalityGreeting && (
+                  <motion.div
+                    initial={{ scale: 0.98, opacity: 0, y: -10 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.98, opacity: 0, y: -10 }}
+                    className="p-5 md:p-6 rounded-3xl bg-gradient-to-br from-[#12072e]/90 via-[#070214]/95 to-black border-2 border-violet-500/30 text-left relative overflow-hidden backdrop-blur-xl shadow-[0_0_30px_rgba(139,92,246,0.25)] flex flex-col md:flex-row items-center justify-between gap-5 my-6"
+                  >
+                    {/* Laser overlay light effect */}
+                    <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-violet-400 to-transparent animate-pulse" />
+                    
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center text-white shrink-0 shadow-[0_0_15px_rgba(168,85,247,0.4)] animate-bounce relative">
+                        <Sparkles className="w-6 h-6" />
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500"></span>
+                        </span>
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-black uppercase font-mono text-[#a855f7] tracking-widest flex items-center gap-1.5">
+                          <span>INMARKET INTEL ORACLE v4.0</span>
+                        </h4>
+                        <p className="text-xs text-slate-100 font-medium">
+                          {language === 'id' 
+                            ? `Halo Owner, InMarket memantau cabang ${stores.find(s => s.id === currentStore)?.name}. Cabang dalam kondisi prima dengan total ${products.length} menu siap saji!`
+                            : `Hello Owner, InMarket is actively auditing ${stores.find(s => s.id === currentStore)?.name}. Fully nominal with ${products.length} premium menu listings.`
+                          }
+                        </p>
+                        <p className="text-[10.5px] text-slate-400 font-mono">
+                          {language === 'id'
+                            ? `💡 Rekomendasi Hari Ini: Tingkatkan pasokan Espresso Premium di kuartal pagi menjelang jam sibuk.`
+                            : `💡 Today\'s Insight: Double up of Espresso Premium supplies prior to peak-morning hours.`
+                          }
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        onClick={() => { playClickSound(); toast.success(language === 'id' ? "Rekomendasi AI ditandai!" : "AI advice noted!"); }}
+                        className="py-2 px-4 rounded-xl bg-violet-600/20 hover:bg-violet-600/35 border border-violet-500/40 text-violet-300 text-[10px] font-black uppercase tracking-wider cursor-pointer font-mono"
+                      >
+                        {language === 'id' ? 'UTAMAKAN' : 'PRIORITIZE'}
+                      </button>
+                      <button
+                        onClick={() => { playClickSound(); setShowPersonalityGreeting(false); }}
+                        className="p-2 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition cursor-pointer"
+                        title={language === 'id' ? 'Tutup rekomendasi' : 'Dismiss insights'}
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
                {/* Statistics row */}
               {userRole === 'Owner' ? (
                 <>
@@ -2677,14 +2856,13 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                       <h4 className="text-xs uppercase tracking-widest font-mono text-indigo-500 border-b border-indigo-100/10 pb-4 mb-2">{t('quickActions')}</h4>
                       
                       <div className="space-y-3">
-                        <div className="p-3.5 rounded-2xl bg-violet-600/15 border border-violet-500/20">
-                          <span className="text-[10px] font-black uppercase block opacity-60 mb-2">{t('salaryFeature')}</span>
+                        <div className="p-3.5 rounded-2xl bg-violet-600/15 border border-violet-500/20 font-sans">
+                          <span className="text-[10px] font-black uppercase block opacity-60 mb-2">{language === 'id' ? 'SISTEM OPERASIONAL GAJI' : 'PAYROLL SYSTEM'}</span>
                           <button 
-                            onClick={handlePaySalary}
-                            disabled={isSalaryPaid}
-                            className="w-full py-2.5 bg-violet-600 text-white rounded-xl text-xs font-black uppercase hover:bg-violet-700 transition"
+                            onClick={() => { playClickSound(); setShowSalaryManager(true); }}
+                            className="w-full py-2.5 bg-violet-600 text-white rounded-xl text-xs font-black uppercase hover:bg-violet-700 transition cursor-pointer"
                           >
-                            {isSalaryPaid ? '✅ GAJI TELAH DITRANSFER' : t('paySalary')}
+                            💸 {userRole === 'Owner' ? (language === 'id' ? 'Kelola Gaji Karyawan' : 'Manage Salaries') : (language === 'id' ? 'Lihat Slip Gaji Saya' : 'View My Pay Check')}
                           </button>
                         </div>
 
@@ -2692,6 +2870,13 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                           <button onClick={() => setActiveTab('kasir')} className="flex-1 py-3 bg-slate-900 text-white dark:bg-white/10 rounded-xl text-xs font-black uppercase text-center hover:brightness-110 transition">{t('addTransaction')}</button>
                           <button onClick={handleGenerateAttendanceCode} className="flex-1 py-3 bg-slate-900 text-white dark:bg-white/10 rounded-xl text-xs font-black uppercase text-center hover:brightness-110 transition">{t('genAttendance')}</button>
                         </div>
+                        
+                        <button
+                          onClick={() => { playClickSound(); setShowJuryHub(true); }}
+                          className="w-full py-2.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 text-amber-300 rounded-xl text-xs font-black uppercase hover:brightness-110 transition flex items-center justify-center gap-2 cursor-pointer"
+                        >
+                          <Award size={14} /> 🏆 Demo Mode Juri
+                        </button>
                       </div>
 
                       <p className="text-[9px] font-mono opacity-50 mt-4 text-center">InMarket Platform v2.5 Sandbox Instance</p>
@@ -2753,6 +2938,9 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                   </div>
                 </div>
               )}
+
+              {/* REAL-TIME SALES TREND ANALYSIS WIDGET */}
+              <RealtimeSalesTrends realtimeSales={realtimeSales} language={language} />
 
               {/* AUTOMATION & SMART BUSINESS OS SYSTEM UNIT */}
               <SmartBusinessOS 
@@ -4646,6 +4834,56 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
         )}
       </AnimatePresence>
 
+      {/* Salary Manager Overlay Console */}
+      <AnimatePresence>
+        {showSalaryManager && (
+          <SalaryManager
+            userRole={userRole as 'Owner' | 'Employee'}
+            employeeProfile={employeeProfile}
+            language={language}
+            playClickSound={playClickSound}
+            playSuccessSound={playSuccessSound}
+            triggerNotification={triggerNotification}
+            logSystemActivity={logActivity}
+            onSalaryPaid={() => {
+              setIsSalaryPaid(true);
+              const key = getPartitionedKey('inmarket_salary_paid', true);
+              localStorage.setItem(key, 'yes');
+              handlePaySalary();
+            }}
+            onClose={() => setShowSalaryManager(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showJuryHub && (
+          <JuryShowcaseHub
+            products={products}
+            realtimeSales={realtimeSales}
+            realtimeExpenses={realtimeExpenses}
+            setProducts={setProducts}
+            setRealtimeSales={setRealtimeSales}
+            setRealtimeExpenses={setRealtimeExpenses}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            language={language}
+            playClickSound={playClickSound}
+            playScanSound={playScanSound}
+            playSuccessSound={playSuccessSound}
+            triggerNotification={triggerNotification}
+            logSystemActivity={logActivity}
+            userRole={userRole}
+            onClose={() => setShowJuryHub(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Auto-Saved Timestamp Indicator */}
+      <div className="fixed bottom-24 right-6 z-40 bg-black/60 backdrop-blur text-[10px] font-mono text-slate-400 px-3 py-1.5 rounded-full border border-white/10 shadow-lg pointer-events-none">
+        💾 Tersimpan otomatis {secondsSinceSave} detik lalu
+      </div>
+
       {/* MODAL 3: Payout Celebration Salary Rain screen overlay */}
       <AnimatePresence>
         {salaryAnim && (
@@ -5148,10 +5386,10 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
               {userRole === 'Owner' ? (
                 <>
                   <button 
-                    onClick={() => { playClickSound(); setShowQuickFAB(false); handlePaySalary(); }}
-                    className="w-full text-left py-1 px-2 hover:bg-slate-500/10 rounded-lg text-xs font-semibold text-slate-200 hover:text-emerald-400 transition"
+                    onClick={() => { playClickSound(); setShowQuickFAB(false); setShowSalaryManager(true); }}
+                    className="w-full text-left py-1 px-2 hover:bg-slate-500/10 rounded-lg text-xs font-semibold text-slate-200 hover:text-emerald-400 transition cursor-pointer"
                   >
-                    💸 Bayar Gaji Staf
+                    💸 Kelola Gaji Staf
                   </button>
                   <button 
                     onClick={() => { playClickSound(); setShowQuickFAB(false); handleGenerateAttendanceCode(); }}
@@ -5161,12 +5399,20 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
                   </button>
                 </>
               ) : (
-                <button 
-                  onClick={() => { playClickSound(); setShowQuickFAB(false); setActiveTab('absensi'); }}
-                  className="w-full text-left py-1 px-2 hover:bg-slate-500/10 rounded-lg text-xs font-semibold text-slate-200 hover:text-violet-400 transition"
-                >
-                  📷 Check In Absensi
-                </button>
+                <>
+                  <button 
+                    onClick={() => { playClickSound(); setShowQuickFAB(false); setActiveTab('absensi'); }}
+                    className="w-full text-left py-1 px-2 hover:bg-slate-500/10 rounded-lg text-xs font-semibold text-slate-200 hover:text-violet-400 transition"
+                  >
+                    📷 Check In Absensi
+                  </button>
+                  <button 
+                    onClick={() => { playClickSound(); setShowQuickFAB(false); setShowSalaryManager(true); }}
+                    className="w-full text-left py-1 px-2 hover:bg-slate-500/10 rounded-lg text-xs font-semibold text-slate-200 hover:text-emerald-400 transition cursor-pointer"
+                  >
+                    💸 Lihat Status Gaji
+                  </button>
+                </>
               )}
             </motion.div>
           )}
@@ -5206,24 +5452,6 @@ Selalu ikuti format terstruktur berikut untuk semua rekomendasi dan analisis bis
         showScrollBottom={showScrollBottom}
         scrollToTop={scrollToTop}
         scrollToBottom={scrollToBottom}
-      />
-
-      <JuryShowcaseHub 
-        products={products}
-        realtimeSales={realtimeSales}
-        realtimeExpenses={realtimeExpenses}
-        setProducts={setProducts}
-        setRealtimeSales={setRealtimeSales}
-        setRealtimeExpenses={setRealtimeExpenses}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        language={language}
-        playClickSound={playClickSound}
-        playScanSound={playScanSound}
-        playSuccessSound={playSuccessSound}
-        triggerNotification={triggerNotification}
-        logSystemActivity={logActivity}
-        userRole={userRole}
       />
 
     </div>

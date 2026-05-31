@@ -101,11 +101,14 @@ const MarketAi: React.FC<MarketAiProps> = ({
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <div className="flex gap-1 items-center">
+                      <div className="flex gap-1 items-center relative">
                         <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                         <span className="w-2 h-2 bg-emerald-500/30 rounded-full animate-ping absolute" />
                       </div>
                       <p className="text-xs text-slate-400 font-medium tracking-wide uppercase">Core Engine Synchronized</p>
+                      <span className="bg-gradient-to-r from-violet-600 to-indigo-500 border border-violet-400/20 px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase text-white tracking-widest animate-pulse shadow-[0_0_12px_rgba(139,92,246,0.3)] shrink-0">
+                        🔋 GEMINI PRO 1.5
+                      </span>
                     </div>
                     
                     <button 

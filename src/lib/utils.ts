@@ -22,6 +22,12 @@ export function getTenantPrefix(): string {
   if (auth.currentUser) {
      return `tenant_${auth.currentUser.uid}_`;
   }
+
+  // Backup fallback: check if we have a cached online user UID in localStorage to avoid race conditions during session restore
+  const cachedUid = localStorage.getItem('inmarket_cached_user_uid');
+  if (cachedUid) {
+     return `tenant_${cachedUid}_`;
+  }
   
   // Fallback to offline user
   const offlineUserStr = localStorage.getItem('offline_logged_in_user');

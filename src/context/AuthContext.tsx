@@ -3,6 +3,7 @@ import { auth, db } from '../lib/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { verifyOfflineSessionSignature } from '../lib/validation';
+import { getPartitionedKey } from '../lib/utils';
 
 interface UserData {
   role: 'Owner' | 'Employee' | 'Guest' | '';
@@ -16,6 +17,8 @@ interface AuthContextType {
   userData: UserData | null;
   authLoading: boolean;
   refreshAuth: () => void;
+  hasBusiness: boolean;
+  setHasBusiness: (val: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -23,6 +26,8 @@ const AuthContext = createContext<AuthContextType>({
   userData: null,
   authLoading: true,
   refreshAuth: () => {},
+  hasBusiness: false,
+  setHasBusiness: () => {},
 });
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -30,22 +35,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [userData, setUserData] = useState<UserData | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [refreshToggle, setRefreshToggle] = useState(0);
+  const [hasBusiness, setHasBusiness] = useState(false);
 
   const refreshAuth = () => {
     setRefreshToggle(prev => prev + 1);
   };
 
+  useEffect(() => {
+    const businessKey = getPartitionedKey('inmarket_business', true);
+    const businessData = localStorage.getItem(businessKey);
+    if (businessData) {
+      setHasBusiness(true);
+    } else {
+      setHasBusiness(false);
+    }
+  }, [userData]);
+
   // 30 Minutes Inactivity Timeout
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
+    let lastResetTime = 0;
 
-    const resetTimeout = () => {
+    const resetTimeout = (event?: Event) => {
+      const now = Date.now();
+      // Throttle high-frequency events (like mousemove and scroll) to once per 5 seconds
+      if (event && (event.type === 'mousemove' || event.type === 'scroll')) {
+        if (now - lastResetTime < 5000) {
+          return;
+        }
+      }
+      lastResetTime = now;
+
       if (timeoutId) clearTimeout(timeoutId);
       // Auto logout after 30 minutes of inactivity
       timeoutId = setTimeout(() => {
         if (auth.currentUser || localStorage.getItem('offline_logged_in_user')) {
           console.log('Session expired due to 30 minutes of inactivity. Logging out...');
           localStorage.removeItem('offline_logged_in_user');
+          localStorage.removeItem('inmarket_cached_user_uid');
           if (auth.currentUser) {
             signOut(auth).then(() => {
               window.location.reload();
@@ -102,10 +129,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const checkStatus = async (user: User | null) => {
       setCurrentUser(user);
       if (user) {
+        // Cache online user uid to prevent race condition during session restore
+        localStorage.setItem('inmarket_cached_user_uid', user.uid);
         try {
           await user.getIdToken(false);
         } catch (e) {
           console.error("Token might be expired", e);
+          localStorage.removeItem('inmarket_cached_user_uid');
           await signOut(auth);
           setCurrentUser(null);
           setUserData(null);
@@ -160,6 +190,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           localStorage.setItem('inmarket_user_role', 'Guest');
         }
       } else {
+        localStorage.removeItem('inmarket_cached_user_uid');
         const offlineUserStr = localStorage.getItem('offline_logged_in_user');
         if (offlineUserStr) {
           try {
@@ -218,10 +249,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
 
   return (
-    <AuthContext.Provider value={{ currentUser, userData, authLoading, refreshAuth }}>
+    <AuthContext.Provider value={{ currentUser, userData, authLoading, refreshAuth, hasBusiness, setHasBusiness }}>
       {children}
     </AuthContext.Provider>
-
   );
 };
 

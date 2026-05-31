@@ -28,7 +28,12 @@ import {
   Crown,
   UserCheck,
   Shield,
-  X
+  X,
+  TrendingDown,
+  FileText,
+  EyeOff,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import { useThemeLanguage } from '../context/ThemeLanguageContext';
 import ThemeLanguageSwitcher from './ThemeLanguageSwitcher';
@@ -416,7 +421,7 @@ export default function LandingPage({ onNavigate }: { onNavigate: (view: any) =>
           </div>
 
           {/* Epic Main Headline with floating neon text animations */}
-          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[140px] font-black tracking-tighter leading-[0.9] select-none relative py-4 md:py-2">
+          <h1 className="text-5xl sm:text-7xl md:text-8xl lg:text-[145px] font-black tracking-tighter leading-[0.85] select-none relative py-4 md:py-2 flex flex-col items-center">
             <span className={`text-transparent bg-clip-text transition-all duration-700 ${theme === 'dark' ? 'bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-[0_0_40px_rgba(139,92,246,0.3)]' : 'bg-gradient-to-r from-zinc-900 to-zinc-600'}`}>
               InMarket
             </span>
@@ -425,22 +430,36 @@ export default function LandingPage({ onNavigate }: { onNavigate: (view: any) =>
             </span>
           </h1>
 
+          {/* Triggering Hero Headline - Problem & Solution Pairing */}
+          <div className="space-y-3 max-w-3xl mx-auto px-4">
+            <h2 className="text-lg md:text-2xl font-black text-red-500 dark:text-red-400 tracking-tight leading-snug">
+              {language === 'id' 
+                ? "⚠️ 78% UMKM INDONESIA HAMPIR BANGKRUT AKIBAT MANAJEMEN MANUAL & KEBOCORAN KAS." 
+                : "⚠️ 78% OF INDONESIAN MSMEs STRUGGLE FROM MANUAL MANAGEMENT & CASH LEAKAGE."}
+            </h2>
+            <p className="text-sm md:text-xl font-bold text-emerald-600 dark:text-emerald-400 tracking-tight">
+              {language === 'id'
+                ? "💡 Solusi: InMarket Mengotomatiskan POS, Kontrol Stok Riil & Absensi Wajah Berbasis AI Sekali Klik."
+                : "💡 Solution: InMarket Automates POS, Real-Time Stock & Face Detection AI in One Click."}
+            </p>
+          </div>
+
           {/* Static tagline layout wrapper */}
           <div className="h-10 md:h-12 flex items-center justify-center px-4">
-            <span className="text-sm md:text-2xl font-black text-cyan-400 tracking-[0.2em] font-mono border-y border-cyan-400/20 py-2 md:py-0 md:border-none uppercase">
-              {taglineText}
+            <span className="text-xs md:text-lg font-black text-cyan-400 tracking-[0.25em] font-mono border-y border-cyan-400/20 py-2 md:py-1 uppercase">
+              {language === 'id' ? "SISTEM OPERASI BISNIS TERPADU" : "SMART BUSINESS OPERATING SYSTEM"}
             </span>
           </div>
 
           {/* Subtext description */}
-          <p className={`text-xs md:text-xl max-w-3xl mx-auto leading-relaxed font-medium px-4 md:px-0 transition-colors duration-700 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'}`}>
+          <p className={`text-xs md:text-lg max-w-3xl mx-auto leading-relaxed font-medium px-4 md:px-0 transition-colors duration-700 ${theme === 'dark' ? 'text-slate-400' : 'text-slate-600'}`}>
             {language === 'id' 
-              ? 'Sistem operasi cerdas terintegrasi untuk kasir digital POS, manajemen stok multi-kategori, sistem presensi karyawan biometrik, dan asisten AI prediktif untuk mengembangkan laba UMKM secara eksponensial di era cloud.'
-              : 'Integrated smart operating system for digital POS, multi-category stock management, biometric employee presence system, and predictive AI assistants to exponentially grow MSME profits in the cloud era.'}
+              ? 'Singkirkan buku tulis dan Excel rawan manipulasi. Dilengkapi asisten AI prediktif berbasis agen kognitif untuk akselerasi profit Anda.'
+              : 'Eliminate error-prone spreadsheets. Equipped with predictive AI assistants and cognitive agents to accelerate your profit margins.'}
           </p>
 
           {/* Glassmorphic Glowing Button cluster */}
-          <div className="flex flex-col md:flex-row justify-center items-stretch md:items-center gap-4 md:gap-8 pt-6 w-full max-w-lg mx-auto md:max-w-none px-4">
+          <div className="flex flex-col md:flex-row justify-center items-stretch md:items-center gap-4 md:gap-8 pt-4 w-full max-w-lg mx-auto md:max-w-none px-4">
             <button
               onClick={() => { playSuccessSound(); onNavigate('auth'); }}
               className="px-8 py-5 md:px-12 md:py-6 bg-gradient-to-r from-violet-600 to-fuchsia-500 rounded-2xl font-black text-xs md:text-sm text-white uppercase tracking-[0.2em] hover:scale-[1.05] transition-all duration-500 relative group overflow-hidden border border-white/20 shadow-[0_0_30px_rgba(139,92,246,0.5)] cursor-pointer"
@@ -465,6 +484,192 @@ export default function LandingPage({ onNavigate }: { onNavigate: (view: any) =>
             </button>
           </div>
         </motion.div>
+      </section>
+
+      {/* ================================================= */}
+      {/* 1B. PROBLEM STATEMENT SECTION (3 Shocking Stats) */}
+      {/* ================================================= */}
+      <section className="relative z-30 px-6 max-w-6xl mx-auto py-16">
+        <div className="text-center mb-12">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border text-[10px] uppercase font-bold tracking-widest ${theme === 'dark' ? 'bg-red-500/10 border-red-500/20 text-red-400 font-bold' : 'bg-red-500/5 border-red-500/10 text-red-600 font-bold'}`}
+          >
+            <TrendingDown size={12} /> {language === 'id' ? 'REALITAS UMKM INDONESIA' : 'INDONESIAN MSME REALITY'}
+          </motion.div>
+          
+          <h3 className={`text-2xl md:text-5xl font-black tracking-tight mt-4 ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            {language === 'id' 
+              ? 'Mengapa Banyak UMKM Terjebak di Zona Merah?' 
+              : 'Why are Most MSMEs Stuck in the Red Zone?'}
+          </h3>
+          <p className="text-xs md:text-lg text-slate-500 max-w-2xl mx-auto mt-2 font-medium">
+            {language === 'id'
+              ? 'Tiga kendala utama yang membunuh potensi laba usaha mikro setiap hari tanpa disadari.'
+              : 'Three hidden obstacles draining micro-business profits every single day without being noticed.'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {/* Card 1 */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.1 }}
+            className="p-8 rounded-[32px] backdrop-blur-2xl bg-black/40 border border-white/5 hover:border-violet-500/30 transition-all shadow-xl group relative overflow-hidden text-left"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-violet-600/10 rounded-full blur-2xl group-hover:bg-violet-600/20 transition-all" />
+            <div className="w-12 h-12 rounded-2xl bg-violet-500/10 flex items-center justify-center border border-violet-500/20 text-violet-500 mb-6">
+              <FileText size={24} />
+            </div>
+            <div className="text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-violet-500 to-fuchsia-500 mb-2">
+              78%
+            </div>
+            <h4 className="text-lg font-black text-slate-100 dark:text-white mb-2">
+              {language === 'id' ? 'Buta Pembukuan Riil' : 'No Accurate Ledger'}
+            </h4>
+            <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-medium">
+              {language === 'id'
+                ? 'Mayoritas UMKM berjuang dalam 2 tahun pertama karena masih memakai buku tulis atau Excel manual yang rumit dan rawan hilang.'
+                : 'Most MSMEs struggle in their first 2 years due to relying on paper notes or clumsy, easily lost spreadsheet formulas.'}
+            </p>
+          </motion.div>
+
+          {/* Card 2 */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="p-8 rounded-[32px] backdrop-blur-2xl bg-black/40 border border-white/5 hover:border-cyan-500/30 transition-all shadow-xl group relative overflow-hidden text-left"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-600/10 rounded-full blur-2xl group-hover:bg-cyan-600/20 transition-all" />
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400 mb-6">
+              <Wallet size={24} />
+            </div>
+            <div className="text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400 mb-2">
+              Rp 12.4M+
+            </div>
+            <h4 className="text-lg font-black text-slate-100 dark:text-white mb-2">
+              {language === 'id' ? 'Kebocoran Kas Tersembunyi' : 'Monthly Financial Leakage'}
+            </h4>
+            <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-medium">
+              {language === 'id'
+                ? 'Rata-rata pemilik kehilangan hingga belasan juta per tahun akibat fraud karyawan, selisih stok fisik, dan struk tak tercatat.'
+                : 'Store owners lose up to millions annually due to employee pricing fraud, physical stock errors, and untracked discounts.'}
+            </p>
+          </motion.div>
+
+          {/* Card 3 */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3 }}
+            className="p-8 rounded-[32px] backdrop-blur-2xl bg-black/40 border border-white/5 hover:border-red-500/30 transition-all shadow-xl group relative overflow-hidden text-left"
+          >
+            <div className="absolute top-0 right-0 w-24 h-24 bg-red-500/10 rounded-full blur-2xl group-hover:bg-red-500/20 transition-all" />
+            <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center border border-red-500/20 text-red-500 mb-6">
+              <EyeOff size={24} />
+            </div>
+            <div className="text-5xl font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 mb-2">
+              Rp 4.2Jt
+            </div>
+            <h4 className="text-lg font-black text-slate-100 dark:text-white mb-2">
+              {language === 'id' ? 'Kerugian Bulanan Ekstra' : 'Extra Monthly Losses'}
+            </h4>
+            <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-medium">
+              {language === 'id'
+                ? 'Rata-rata UMKM kehilangan dana operasional jutaan rupiah tanpa jejak per bulan. Seringkali akibat selisih stok manual dan absensi karyawan yang dimanipulasi.'
+                : 'The average SME blindly leaks millions of rupiah every month without a trace. Mostly caused by manual stock discrepancies and manipulated staff check-ins.'}
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ================================================= */}
+      {/* 1C. "BEFORE VS AFTER" COMPARISON SECTION          */}
+      {/* ================================================= */}
+      <section className="relative z-30 px-6 max-w-6xl mx-auto py-8">
+        <div className="text-center mb-12">
+          <h3 className={`text-xl md:text-3xl font-black tracking-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
+            {language === 'id' ? 'Komparasi Realitas Operasional' : 'Operational Reality Comparison'}
+          </h3>
+          <p className="text-xs md:text-sm text-slate-400 mt-1 font-medium">
+            {language === 'id' ? 'Dua jalan berbeda: Sistem lama manual vs Otomasi Canggih InMarket' : 'Two distinct paths: Legacy manual system vs InMarket Adaptive AI'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Legacy Path (Red Glow) */}
+          <motion.div
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="p-8 rounded-[32px] bg-red-950/10 dark:bg-red-950/5 border border-red-500/20 hover:border-red-500/40 hover:shadow-[0_0_30px_rgba(239,68,68,0.15)] transition-all text-left relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-4 font-mono text-[10px] tracking-widest font-black text-red-500 bg-red-500/10 rounded-bl-2xl">
+              LEGACY SYSTEM
+            </div>
+            <h4 className="text-xl font-black text-red-400 flex items-center gap-2 mb-6">
+              <XCircle size={20} /> {language === 'id' ? 'Tanpa InMarket (Buku/Excel)' : 'Without InMarket (Manual Cards)'}
+            </h4>
+            <ul className="space-y-4 text-xs md:text-sm text-slate-400 font-medium">
+              <li className="flex items-start gap-3">
+                <span className="text-red-500 font-bold">❌</span>
+                <span>{language === 'id' ? 'Selisih kas harian yang misterius saat tutup buku tiap malam.' : 'Mysterious daily cash errors when balancing registers at night.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-500 font-bold">❌</span>
+                <span>{language === 'id' ? 'Staf bolos atau titip absen manual tanpa bukti koordinat GPS.' : 'Staff falsifying logs or sharing codes without valid GPS coordinate lock.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-500 font-bold">❌</span>
+                <span>{language === 'id' ? 'Produk terlaris mendadak habis tanpa alert, kehilangan puluhan pesanan.' : 'Best-sellers sell out without warning, bleeding thousands in profits.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-red-500 font-bold">❌</span>
+                <span>{language === 'id' ? 'Buta loyalitas pembeli, tidak tahu pelanggan setia yang loyal.' : 'Completely blind to CRM metrics—no way to reward loyal regulars.'}</span>
+              </li>
+            </ul>
+          </motion.div>
+
+          {/* Connected Path (Emerald Glow) */}
+          <motion.div
+            initial={{ opacity: 0, x: 50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            className="p-8 rounded-[32px] bg-emerald-950/10 dark:bg-emerald-950/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all text-left relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-4 font-mono text-[10px] tracking-widest font-black text-emerald-400 bg-emerald-400/10 rounded-bl-2xl">
+              SMART BUSINESS OS
+            </div>
+            <h4 className="text-xl font-black text-emerald-400 flex items-center gap-2 mb-6">
+              <CheckCircle size={20} /> {language === 'id' ? 'Dengan InMarket.id (Smart AI)' : 'With InMarket.id (Smart AI)'}
+            </h4>
+            <ul className="space-y-4 text-xs md:text-sm text-slate-300 font-medium">
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>{language === 'id' ? 'Laporan laba rugi instan & otomatis akurat dalam 2 detik.' : 'Instant, absolute P&L accuracy calculated automatically in 2 seconds.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>{language === 'id' ? 'Presensi wajah biometrik anti-manipulasi terkunci titik koordinat GPS.' : 'Secure, tamper-proof face biometric login bound to physical GPS.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>{language === 'id' ? 'AI pintar meramal restock otomatis sebelum bahan dagangan ludes.' : 'Adaptive AI predicts stock exhaustion, sending auto-restock orders.'}</span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span>{language === 'id' ? 'CRM terintegrasi memetakan tier keanggotaan otomatis berdaya tarik cashback.' : 'Integrated CRM automates membership levels with attractive cashback.'}</span>
+              </li>
+            </ul>
+          </motion.div>
+        </div>
       </section>
 
 
