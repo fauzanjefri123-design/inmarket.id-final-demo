@@ -54,37 +54,267 @@ interface FloatingParticle {
 }
 
 // FIXED: Isolated component to render <spline-viewer> completely outside React virtual DOM reconciliation.
-// This completely solves "Failed to execute 'removeChild' on 'Node'" crashes under Framer Motion unmounting.
+// Now upgraded with robust safety timeouts, global error capture, and a gorgeous local interactive cosmic canvas backup.
 function SafeSplineViewer({ url, scrollY }: { url: string; scrollY: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [useFallback, setUseFallback] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Error listener & safety timeout
   useEffect(() => {
+    let timer = setTimeout(() => {
+      console.warn("Spline-viewer timeout reached. Loading local cosmic interactive backdrop.");
+      setUseFallback(true);
+      setLoading(false);
+    }, 1200); // 1.2s timeout for extremely fast fallback triggers
+
+    const handleError = (e: ErrorEvent) => {
+      if (e.message?.includes('buffer') || e.message?.includes('spline') || e.message?.includes('WebGL')) {
+        setUseFallback(true);
+        setLoading(false);
+        clearTimeout(timer);
+      }
+    };
+    const handleRejection = (e: PromiseRejectionEvent) => {
+      const msg = e.reason?.toString() || '';
+      if (msg.includes('buffer') || msg.includes('spline') || msg.includes('WebGL')) {
+        setUseFallback(true);
+        setLoading(false);
+        clearTimeout(timer);
+      }
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleRejection);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+    };
+  }, []);
+
+  // Try loading spline element
+  useEffect(() => {
+    if (useFallback) return;
+
     const container = containerRef.current;
     if (!container) return;
 
+    container.innerHTML = '';
     const spline = document.createElement('spline-viewer');
     spline.setAttribute('url', url);
     spline.style.width = '100%';
     spline.style.height = '100%';
     spline.style.display = 'block';
-    
+
+    const handleLoad = () => {
+      setLoading(false);
+    };
+
+    spline.addEventListener('load', handleLoad);
     container.appendChild(spline);
 
     return () => {
+      spline.removeEventListener('load', handleLoad);
       if (container) {
         container.innerHTML = '';
       }
     };
-  }, [url]);
+  }, [url, useFallback]);
 
+  // Parallax translation effect
   useEffect(() => {
     const container = containerRef.current;
-    if (container && container.firstElementChild) {
-       (container.firstElementChild as HTMLElement).style.transform = `translateY(${scrollY * 0.15}px)`;
+    if (container && container.firstElementChild && !useFallback) {
+      (container.firstElementChild as HTMLElement).style.transform = `translateY(${scrollY * 0.15}px)`;
     }
-  }, [scrollY]);
+  }, [scrollY, useFallback]);
 
-  return <div ref={containerRef} className="w-full h-full" style={{ width: '100%', height: '100%' }} />;
+  // Interactive 3D/Cosmic nebula canvas simulation
+  useEffect(() => {
+    if (!useFallback) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationId: number;
+    let width = canvas.width = canvas.parentElement?.clientWidth || 800;
+    let height = canvas.height = canvas.parentElement?.clientHeight || 600;
+
+    // Handle resize
+    const resizeObserver = new ResizeObserver(entries => {
+      for (let entry of entries) {
+        width = canvas.width = entry.contentRect.width;
+        height = canvas.height = entry.contentRect.height;
+      }
+    });
+    if (canvas.parentElement) {
+      resizeObserver.observe(canvas.parentElement);
+    }
+
+    // Mouse interactive coords
+    let mouse = { x: width / 2, y: height / 2, active: false };
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+      mouse.active = true;
+    };
+    const handleMouseLeave = () => {
+      mouse.active = false;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    // Initialize 90 cosmic particles
+    interface Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      size: number;
+      color: string;
+      alpha: number;
+      pulseSpeed: number;
+      pulseVal: number;
+    }
+    const particles: Particle[] = [];
+    const colors = [
+      'rgba(236, 72, 153, ',  // Pink / Fuchsia
+      'rgba(168, 85, 247, ',  // Purple
+      'rgba(59, 130, 246, ',  // Blue
+      'rgba(6, 182, 212, ',   // Cyan
+    ];
+
+    for (let i = 0; i < 90; i++) {
+      particles.push({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        size: Math.random() * 2 + 1,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: Math.random() * 0.5 + 0.3,
+        pulseSpeed: Math.random() * 0.02 + 0.005,
+        pulseVal: Math.random() * Math.PI,
+      });
+    }
+
+    // Main animation loop
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Draw glowing nebula backdrop
+      const radialGrad = ctx.createRadialGradient(
+        width / 2 + (mouse.active ? (mouse.x - width / 2) * 0.15 : 0),
+        height / 2 + (mouse.active ? (mouse.y - height / 2) * 0.15 : 0) - (scrollY * 0.15),
+        50,
+        width / 2,
+        height / 2,
+        width * 0.6
+      );
+      radialGrad.addColorStop(0, 'rgba(168, 85, 247, 0.12)'); // Deep Purple glow
+      radialGrad.addColorStop(0.3, 'rgba(236, 72, 153, 0.05)'); // Fuchsia envelope
+      radialGrad.addColorStop(0.6, 'rgba(6, 182, 212, 0.02)');   // Cyber Cyan hint
+      radialGrad.addColorStop(1, 'rgba(3, 1, 7, 0)');           // Seamless core edge
+      ctx.fillStyle = radialGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // 2. Update and draw connections
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 100) {
+            const alpha = (1 - dist / 100) * 0.18;
+            ctx.strokeStyle = `rgba(168, 85, 247, ${alpha})`;
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 3. Move and draw particles
+      particles.forEach(p => {
+        // Gravitational pull to mouse
+        if (mouse.active) {
+          const dx = mouse.x - p.x;
+          const dy = mouse.y - p.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 180) {
+            const force = (180 - dist) / 180;
+            p.vx += (dx / dist) * force * 0.02;
+            p.vy += (dy / dist) * force * 0.02;
+          }
+        }
+
+        // Apply velocity
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Parallax scroll reaction
+        const drawY = p.y + (scrollY * 0.08);
+
+        // Boundary bounce
+        if (p.x < 0 || p.x > width) p.vx *= -1;
+        if (p.y < 0 || p.y > height) p.vy *= -1;
+
+        // Dampen velocity to keep it elegant and steady
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+
+        // Pulse alpha
+        p.pulseVal += p.pulseSpeed;
+        const currentAlpha = p.alpha + Math.sin(p.pulseVal) * 0.15;
+
+        // Draw particle core
+        ctx.beginPath();
+        ctx.arc(p.x, drawY, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color + Math.max(0.1, Math.min(1, currentAlpha)) + ')';
+        ctx.shadowBlur = p.size * 2;
+        ctx.shadowColor = 'rgba(168, 85, 247, 0.4)';
+        ctx.fill();
+        ctx.shadowBlur = 0; // Reset shadow for fast rendering
+      });
+
+      animationId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      cancelAnimationFrame(animationId);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      resizeObserver.disconnect();
+    };
+  }, [useFallback, scrollY]);
+
+  if (useFallback) {
+    return <canvas ref={canvasRef} className="w-full h-full block pointer-events-none opacity-80" />;
+  }
+
+  return (
+    <div className="relative w-full h-full">
+      <div ref={containerRef} className="w-full h-full" style={{ width: '100%', height: '100%' }} />
+      {loading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-[#030107]/50 backdrop-blur-sm">
+          <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500/20 border-t-fuchsia-500 animate-spin" />
+        </div>
+      )}
+    </div>
+  );
 }
 
 export default function LandingPage({ onNavigate }: { onNavigate: (view: any) => void }) {
